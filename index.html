@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Ecology of Communication Networks</title>
+    <link rel="stylesheet" href="/src/styles/design-system.css" />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header id="header">
+        <div class="header-content">
+          <div class="header-left">
+            <h1>The Ecology of Communication Networks</h1>
+          </div>
+
+          <div class="header-right">
+            <div class="theme-toggle" id="theme-toggle" title="Toggle theme">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <!-- Sun icon (light mode) -->
+                <circle class="sun" cx="10" cy="10" r="3" />
+                <g class="sun">
+                  <line x1="10" y1="2" x2="10" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="10" y1="16" x2="10" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="2" y1="10" x2="4" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="16" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="4" y1="4" x2="5.5" y2="5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="14.5" y1="14.5" x2="16" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="14.5" y1="5.5" x2="16" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="4" y1="16" x2="5.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </g>
+                <!-- Moon icon (dark mode) -->
+                <path class="moon" d="M17 11a8 8 0 11-8-8 8 8 0 008 8z" fill="currentColor" style="display: none;"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div id="controls">
+          <div class="control-group">
+            <label for="era-select" class="control-label">Era</label>
+            <select id="era-select" class="select">
+              <option value="oral_culture">Oral Culture</option>
+              <option value="early_print">Early Print</option>
+              <option value="mass_print">Mass Print</option>
+              <option value="broadcast_era">Broadcast Era</option>
+              <option value="early_internet">Early Internet</option>
+              <option value="social_media">Social Media</option>
+              <option value="algorithmic_era" selected>Algorithmic Era</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="edge-style-select" class="control-label">Edges</label>
+            <select id="edge-style-select" class="select">
+              <option value="straight">Straight</option>
+              <option value="curved">Curved</option>
+            </select>
+          </div>
+
+          <div class="control-buttons">
+            <button id="generate-btn" class="button">Generate Network</button>
+            <button id="simulate-btn" class="button" disabled>
+              Start Simulation
+            </button>
+            <button id="reset-btn" class="button" disabled>Reset</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Container (3D Scene) -->
+      <main id="container">
+        <div class="loading" id="loading" style="display: none">
+          <div class="spinner"></div>
+          <p class="text-secondary">Generating network...</p>
+        </div>
+      </main>
+
+      <!-- Stats Panel -->
+      <aside id="stats" class="panel stats-panel" style="display: none">
+        <h3 class="panel-title">Metrics</h3>
+        <div class="stats-grid">
+          <div class="stat-row">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value font-mono" id="fps">60</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Nodes</span>
+            <span class="stat-value font-mono" id="nodes">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Edges</span>
+            <span class="stat-value font-mono" id="edges">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Cognitive Load</span>
+            <span class="stat-value font-mono" id="cognitive-load">0.0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Homeostatic</span>
+            <span class="stat-value font-mono" id="homeostasis">100%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Emotional</span>
+            <span class="stat-value font-mono" id="emotional">0.5</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Polarization</span>
+            <span class="stat-value font-mono" id="polarization">0.0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Double Bind</span>
+            <span class="stat-value font-mono" id="double-bind">0%</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Legend -->
+      <aside class="panel legend-panel">
+        <h4 class="panel-title">Legend</h4>
+
+        <div class="legend-section">
+          <h5 class="legend-subtitle">Node Roles</h5>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--color-consumer)"></div>
+            <span class="legend-text">Consumer</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--color-creator)"></div>
+            <span class="legend-text">Creator</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: var(--color-broadcaster)"></div>
+            <span class="legend-text">Broadcaster</span>
+          </div>
+        </div>
+
+        <div class="legend-section">
+          <h5 class="legend-subtitle">Connection Types</h5>
+          <div class="legend-item">
+            <div class="legend-line" style="background: var(--color-embodied)"></div>
+            <span class="legend-text">Embodied</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: var(--color-print)"></div>
+            <span class="legend-text">Print</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: var(--color-broadcast)"></div>
+            <span class="legend-text">Broadcast</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: var(--color-internet)"></div>
+            <span class="legend-text">Internet</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: var(--color-algorithmic)"></div>
+            <span class="legend-text">Algorithmic</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "orality-network-model",
+  "version": "0.1.0",
+  "description": "Network visualization implementing Bateson's cybernetic models of schismogenesis and double bind",
+  "type": "module",
+  "main": "src/core/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "orality",
+    "literacy",
+    "network",
+    "visualization",
+    "three.js",
+    "bateson",
+    "cybernetics"
+  ],
+  "author": "Irwin Chen",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
