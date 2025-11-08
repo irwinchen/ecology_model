@@ -7,7 +7,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { shouldRenderEdge, getEdgeRepresentation } from '../core/config.js';
+import { shouldRenderEdge, getEdgeRepresentation, FORCE_LAYOUT_CONFIG } from '../core/config.js';
 
 // Design system color mapping
 const COLORS = {
@@ -76,10 +76,12 @@ export class Visualizer {
     this.scene = new THREE.Scene();
     this.updateTheme(this.theme);
 
-    // Create camera
+    // Create camera positioned at 45° angle looking down at plane
     const aspect = this.container.clientWidth / this.container.clientHeight;
     this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 5000);
-    this.camera.position.set(0, 0, 500);
+    // Position camera above and in front of the plane (45° angle)
+    this.camera.position.set(0, 600, 600);
+    this.camera.lookAt(0, 0, 0);
 
     // Create renderer
     this.renderer = new THREE.WebGLRenderer({
@@ -97,8 +99,9 @@ export class Visualizer {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
-    this.controls.minDistance = 50;
-    this.controls.maxDistance = 2000;
+    this.controls.minDistance = 100;
+    this.controls.maxDistance = 3000;
+    this.controls.target.set(0, 0, 0); // Look at center of plane
 
     // No lights needed for flat aesthetic
 
@@ -264,7 +267,7 @@ export class Visualizer {
   }
 
   /**
-   * Create an edge line (straight or curved)
+   * Create an edge line (straight or curved based on distance)
    */
   createEdgeLine(edge, representation) {
     const source_node = this.network_data.nodes[edge.source];
@@ -284,13 +287,19 @@ export class Visualizer {
       target_node.position.z
     );
 
+    // Calculate 2D distance (ignoring z)
+    const dx = target_node.position.x - source_node.position.x;
+    const dy = target_node.position.y - source_node.position.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
     let points;
 
-    if (this.edge_style === 'curved') {
-      // Create curved edge using quadratic bezier
+    // Use distance-based rendering: nearby = straight, far = curved
+    if (distance >= FORCE_LAYOUT_CONFIG.edge_distance_threshold) {
+      // Far connections get curved edges
       points = this.createCurvedEdge(source_pos, target_pos);
     } else {
-      // Straight edge
+      // Nearby connections get straight edges
       points = [source_pos, target_pos];
     }
 

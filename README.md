@@ -215,6 +215,31 @@ Simulated connections represent actual reach beyond the graph:
 - See `Model/Algorithm.md` for complete mathematical specification
 - See `Model/Overview.md` for conceptual framework
 
+## Experimental Features
+
+### Planar Force-Directed Layout (Branch: `feature/planar-force-layout`)
+
+An alternative visualization approach that positions nodes on a 2D plane using force-directed physics. This makes structural patterns more visible:
+
+- **Proximity = connection strength**: Strongly connected nodes cluster together
+- **Distance-based edges**: Nearby = straight lines, distant = curved lines
+- **Emergent patterns**: Feedback loops, echo chambers, and isolation become visually obvious
+- **Medium-specific forces**: Embodied connections pull strongly, algorithmic connections span great distances
+
+**See [PLANAR_LAYOUT.md](./PLANAR_LAYOUT.md) for complete documentation.**
+
+Key benefits:
+- ✅ Feedback loops visible as tight triangular patterns
+- ✅ Echo chambers and isolation clearly distinguishable
+- ✅ Different eras show naturally different spatial structures
+- ✅ Camera positioned at 45° angle for "map view"
+
+Try it:
+```bash
+git checkout feature/planar-force-layout
+npm run dev
+```
+
 ## Future Development
 
 Planned features:
@@ -225,6 +250,8 @@ Planned features:
 - [ ] Historical accuracy validation
 - [ ] Export network data (JSON, GraphML)
 - [ ] Unity WebGL migration for better performance
+- [ ] Interactive force tuning for planar layout
+- [ ] Cluster detection and labeling
 
 ## License
 

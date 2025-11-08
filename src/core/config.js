@@ -285,4 +285,34 @@ export function getEdgeRepresentation(edge, camera_distance, config) {
   }
 }
 
+/**
+ * Force-directed layout configuration
+ */
+export const FORCE_LAYOUT_CONFIG = {
+  // Force strengths by connection medium
+  attraction_forces: {
+    embodied: 0.8,      // Strong pull - tight clusters
+    print: 0.4,         // Medium pull
+    broadcast: 0.2,     // Weak pull - hub-and-spoke
+    internet: 0.3,      // Medium pull
+    algorithmic: 0.15   // Very weak pull - can span distance
+  },
+
+  // Repulsion between all nodes (prevents overlap)
+  repulsion_strength: 100,
+  repulsion_distance: 50,
+
+  // Layout parameters
+  iterations: 300,           // Number of simulation steps
+  cooling_factor: 0.95,      // Velocity damping per iteration
+  initial_temperature: 100,  // Initial movement energy
+
+  // Distance threshold for edge rendering
+  edge_distance_threshold: 150,  // < threshold = straight, >= threshold = curved
+
+  // Plane boundaries (optional)
+  use_boundaries: false,
+  boundary_size: 1000
+};
+
 export default ERA_CONFIGS;

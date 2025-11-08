@@ -7,7 +7,7 @@
 
 import Node from './Node.js';
 import FeedbackLoop from './FeedbackLoop.js';
-import { ERA_CONFIGS, ensureMinimumRoles } from './config.js';
+import { ERA_CONFIGS, ensureMinimumRoles, FORCE_LAYOUT_CONFIG } from './config.js';
 
 export class NetworkGenerator {
   constructor(era_key, seed = null) {
@@ -100,22 +100,112 @@ export class NetworkGenerator {
   }
 
   /**
-   * Position nodes in 3D space using force-directed layout
-   * (simplified version, can be enhanced with d3-force later)
+   * Position nodes on 2D plane using force-directed layout
+   * Nodes are positioned based on connection forces
    */
   positionNodes() {
-    const radius = Math.sqrt(this.nodes.length) * 5;
+    console.log('Running force-directed layout...');
 
-    this.nodes.forEach((node, i) => {
-      // Distribute nodes in a sphere
-      const theta = this.rng() * Math.PI * 2;
-      const phi = Math.acos(2 * this.rng() - 1);
-      const r = radius * Math.cbrt(this.rng()); // Cube root for even distribution
+    // Initialize random positions on plane
+    const spread = Math.sqrt(this.nodes.length) * 10;
+    this.nodes.forEach((node) => {
+      node.position.x = (this.rng() - 0.5) * spread;
+      node.position.y = (this.rng() - 0.5) * spread;
+      node.position.z = (this.rng() - 0.5) * 2; // Small z variation to prevent perfect overlap
 
-      node.position.x = r * Math.sin(phi) * Math.cos(theta);
-      node.position.y = r * Math.sin(phi) * Math.sin(theta);
-      node.position.z = r * Math.cos(phi);
+      // Initialize velocity for simulation
+      node.velocity = { x: 0, y: 0 };
     });
+
+    // Run force-directed simulation
+    let temperature = FORCE_LAYOUT_CONFIG.initial_temperature;
+
+    for (let iter = 0; iter < FORCE_LAYOUT_CONFIG.iterations; iter++) {
+      // Calculate forces for each node
+      this.nodes.forEach((node) => {
+        const force = { x: 0, y: 0 };
+
+        // Repulsive forces between all nodes
+        this.nodes.forEach((other) => {
+          if (node === other) return;
+
+          const dx = node.position.x - other.position.x;
+          const dy = node.position.y - other.position.y;
+          const distance = Math.sqrt(dx * dx + dy * dy) + 0.01; // Avoid division by zero
+
+          if (distance < FORCE_LAYOUT_CONFIG.repulsion_distance) {
+            const repulsion = FORCE_LAYOUT_CONFIG.repulsion_strength / (distance * distance);
+            force.x += (dx / distance) * repulsion;
+            force.y += (dy / distance) * repulsion;
+          }
+        });
+
+        // Store force temporarily
+        node.force = force;
+      });
+
+      // Apply attractive forces from edges (must be done after repulsion)
+      this.edges.forEach((edge) => {
+        const source = this.nodes[edge.source];
+        const target = this.nodes[edge.target];
+
+        const dx = target.position.x - source.position.x;
+        const dy = target.position.y - source.position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy) + 0.01;
+
+        // Get attraction strength based on medium
+        const attraction_strength = FORCE_LAYOUT_CONFIG.attraction_forces[edge.medium] || 0.3;
+        const attraction = attraction_strength * edge.strength * distance * 0.1;
+
+        const fx = (dx / distance) * attraction;
+        const fy = (dy / distance) * attraction;
+
+        source.force.x += fx;
+        source.force.y += fy;
+        target.force.x -= fx;
+        target.force.y -= fy;
+      });
+
+      // Update positions with cooling
+      this.nodes.forEach((node) => {
+        node.velocity.x = (node.velocity.x + node.force.x) * FORCE_LAYOUT_CONFIG.cooling_factor;
+        node.velocity.y = (node.velocity.y + node.force.y) * FORCE_LAYOUT_CONFIG.cooling_factor;
+
+        // Limit velocity by temperature
+        const speed = Math.sqrt(node.velocity.x ** 2 + node.velocity.y ** 2);
+        if (speed > temperature) {
+          node.velocity.x = (node.velocity.x / speed) * temperature;
+          node.velocity.y = (node.velocity.y / speed) * temperature;
+        }
+
+        // Update position
+        node.position.x += node.velocity.x;
+        node.position.y += node.velocity.y;
+
+        // Optional: Apply boundaries
+        if (FORCE_LAYOUT_CONFIG.use_boundaries) {
+          const limit = FORCE_LAYOUT_CONFIG.boundary_size / 2;
+          node.position.x = Math.max(-limit, Math.min(limit, node.position.x));
+          node.position.y = Math.max(-limit, Math.min(limit, node.position.y));
+        }
+      });
+
+      // Cool down temperature
+      temperature *= 0.98;
+
+      // Log progress every 50 iterations
+      if (iter % 50 === 0) {
+        console.log(`  Layout iteration ${iter}/${FORCE_LAYOUT_CONFIG.iterations}`);
+      }
+    }
+
+    // Clean up temporary properties
+    this.nodes.forEach((node) => {
+      delete node.velocity;
+      delete node.force;
+    });
+
+    console.log('Force-directed layout complete');
   }
 
   /**
@@ -155,12 +245,12 @@ export class NetworkGenerator {
     const core_limit = 5; // Close friends
 
     this.nodes.forEach((node) => {
-      // Find nearby nodes (spatial proximity)
+      // Find nearby nodes (spatial proximity in 2D)
       const nearby = this.nodes
         .filter((other) => other !== node)
         .map((other) => ({
           node: other,
-          distance: this.distance3D(node.position, other.position)
+          distance: this.distance2D(node.position, other.position)
         }))
         .sort((a, b) => a.distance - b.distance);
 
@@ -400,6 +490,15 @@ export class NetworkGenerator {
       (n) => n.double_bind.in_double_bind
     ).length;
     console.log(`Initialized double binds: ${trapped_count} users trapped`);
+  }
+
+  /**
+   * Calculate 2D distance between two points (ignoring z)
+   */
+  distance2D(a, b) {
+    return Math.sqrt(
+      Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)
+    );
   }
 
   /**
