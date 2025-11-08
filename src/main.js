@@ -28,6 +28,10 @@ class App {
     this.resetBtn = document.getElementById('reset-btn');
     this.loading = document.getElementById('loading');
     this.stats = document.getElementById('stats');
+    this.sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+    this.controlPanel = document.getElementById('control-panel');
+    this.statsToggle = document.getElementById('stats-toggle');
+    this.statsContent = document.getElementById('stats-content');
 
     // Stats elements
     this.fpsEl = document.getElementById('fps');
@@ -54,6 +58,23 @@ class App {
     this.edgeStyleSelect.addEventListener('change', (e) =>
       this.changeEdgeStyle(e.target.value)
     );
+    this.sidebarToggleBtn.addEventListener('click', () => this.toggleControlPanel());
+    this.statsToggle.addEventListener('click', () => this.toggleStatsPanel());
+  }
+
+  /**
+   * Toggle control panel visibility
+   */
+  toggleControlPanel() {
+    this.controlPanel.classList.toggle('collapsed');
+  }
+
+  /**
+   * Toggle stats panel collapsed state
+   */
+  toggleStatsPanel() {
+    this.stats.classList.toggle('collapsed');
+    this.statsToggle.textContent = this.stats.classList.contains('collapsed') ? '+' : '−';
   }
 
   /**

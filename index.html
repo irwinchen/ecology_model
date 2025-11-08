@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,36 +9,19 @@
   </head>
   <body>
     <div id="app">
-      <!-- Header -->
-      <header id="header">
-        <div class="header-content">
-          <div class="header-left">
-            <h1>The Ecology of Communication Networks</h1>
-          </div>
+      <!-- Sidebar Toggle Button -->
+      <button id="sidebar-toggle-btn" class="sidebar-toggle" aria-label="Toggle sidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="1" width="14" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="6" y1="1" x2="6" y2="15" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </button>
 
-          <div class="header-right">
-            <div class="theme-toggle" id="theme-toggle" title="Toggle theme">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <!-- Sun icon (light mode) -->
-                <circle class="sun" cx="10" cy="10" r="3" />
-                <g class="sun">
-                  <line x1="10" y1="2" x2="10" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <line x1="10" y1="16" x2="10" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <line x1="2" y1="10" x2="4" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <line x1="16" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <line x1="4" y1="4" x2="5.5" y2="5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <line x1="14.5" y1="14.5" x2="16" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <line x1="14.5" y1="5.5" x2="16" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <line x1="4" y1="16" x2="5.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </g>
-                <!-- Moon icon (dark mode) -->
-                <path class="moon" d="M17 11a8 8 0 11-8-8 8 8 0 008 8z" fill="currentColor" style="display: none;"/>
-              </svg>
-            </div>
-          </div>
-        </div>
+      <!-- Left Sliding Control Panel -->
+      <aside id="control-panel" class="control-panel">
+        <div class="panel-content">
+          <h1 class="panel-title-main">The Ecology of Communication Networks</h1>
 
-        <div id="controls">
           <div class="control-group">
             <label for="era-select" class="control-label">Era</label>
             <select id="era-select" class="select">
@@ -60,15 +43,35 @@
             </select>
           </div>
 
-          <div class="control-buttons">
-            <button id="generate-btn" class="button">Generate Network</button>
-            <button id="simulate-btn" class="button" disabled>
-              Start Simulation
+          <button id="generate-btn" class="button">Generate Network</button>
+          <button id="simulate-btn" class="button" disabled>
+            Start Simulation
+          </button>
+          <button id="reset-btn" class="button" disabled>Reset</button>
+
+          <div class="theme-toggle-container">
+            <label class="control-label">Theme</label>
+            <button id="theme-toggle" class="theme-toggle" title="Toggle theme">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <!-- Sun icon (light mode) -->
+                <circle class="sun" cx="10" cy="10" r="3" />
+                <g class="sun">
+                  <line x1="10" y1="2" x2="10" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="10" y1="16" x2="10" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="2" y1="10" x2="4" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="16" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="4" y1="4" x2="5.5" y2="5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="14.5" y1="14.5" x2="16" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="14.5" y1="5.5" x2="16" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <line x1="4" y1="16" x2="5.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </g>
+                <!-- Moon icon (dark mode) -->
+                <path class="moon" d="M17 11a8 8 0 11-8-8 8 8 0 008 8z" fill="currentColor"/>
+              </svg>
             </button>
-            <button id="reset-btn" class="button" disabled>Reset</button>
           </div>
         </div>
-      </header>
+      </aside>
 
       <!-- Main Container (3D Scene) -->
       <main id="container">
@@ -80,8 +83,11 @@
 
       <!-- Stats Panel -->
       <aside id="stats" class="panel stats-panel" style="display: none">
-        <h3 class="panel-title">Metrics</h3>
-        <div class="stats-grid">
+        <div class="panel-header">
+          <h3 class="panel-title">Metrics</h3>
+          <button id="stats-toggle" class="panel-toggle" aria-label="Toggle stats panel">−</button>
+        </div>
+        <div class="stats-grid" id="stats-content">
           <div class="stat-row">
             <span class="stat-label">FPS</span>
             <span class="stat-value font-mono" id="fps">60</span>
@@ -117,7 +123,7 @@
         </div>
       </aside>
 
-      <!-- Legend -->
+      <!-- Legend (bottom-right) -->
       <aside class="panel legend-panel">
         <h4 class="panel-title">Legend</h4>
 
