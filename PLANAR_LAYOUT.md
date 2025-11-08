@@ -44,6 +44,35 @@ Edges change visual style based on the spatial distance between nodes:
 
 This creates an **intuitive visual grammar**: straight = local/tight, curved = distant/weak.
 
+### Automatic Edge Rendering (No Manual Toggle)
+
+**Important**: Edge rendering style is **fully automatic** based on the spatial distance between nodes. There is no manual toggle or user preference for edge style in this branch.
+
+This design choice is intentional:
+
+- **Semantic, not aesthetic**: Edge style conveys information about network structure (proximity = relationship strength)
+- **Emergent patterns**: The mix of straight and curved lines naturally emerges from the force-directed layout
+- **Consistency**: All users see the same visual grammar, making interpretations comparable
+- **Simplicity**: Removes user configuration complexity
+
+The edge rendering algorithm in `Visualizer.js` automatically determines style:
+
+```javascript
+// Calculate 2D distance between nodes
+const distance = Math.sqrt(dx * dx + dy * dy);
+
+// Automatic style selection
+if (distance >= FORCE_LAYOUT_CONFIG.edge_distance_threshold) {
+  // Far connections → curved edges
+  points = this.createCurvedEdge(source_pos, target_pos);
+} else {
+  // Nearby connections → straight edges
+  points = [source_pos, target_pos];
+}
+```
+
+This differs from the main branch where edge style was a user preference. In the planar layout, **the visualization itself is the message**.
+
 ## Force Mechanics
 
 ### Attraction Forces by Medium
@@ -169,6 +198,12 @@ FORCE_LAYOUT_CONFIG = {
    - Updated camera position to 45° angle
    - Modified `createEdgeLine()` to use distance-based rendering
    - Edges automatically straight (nearby) or curved (distant)
+   - Removed `edge_style` property and `setEdgeStyle()` method (no longer needed)
+
+4. **`index.html` & `src/main.js`**
+   - Removed Edges dropdown from control panel UI
+   - Removed edge style state management and event handlers
+   - Edge rendering is now fully automatic based on distance
 
 ### Performance
 
@@ -279,3 +314,5 @@ This visualization implements Bateson's cybernetic models (schismogenesis, doubl
 **Last Updated**: 2025-11-08
 **Branch**: `feature/planar-force-layout`
 **Status**: Experimental, ready for testing across eras
+
+**UI Changes**: Edge style toggle removed - rendering is fully automatic based on distance

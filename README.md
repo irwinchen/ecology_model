@@ -222,7 +222,7 @@ Simulated connections represent actual reach beyond the graph:
 An alternative visualization approach that positions nodes on a 2D plane using force-directed physics. This makes structural patterns more visible:
 
 - **Proximity = connection strength**: Strongly connected nodes cluster together
-- **Distance-based edges**: Nearby = straight lines, distant = curved lines
+- **Automatic distance-based edges**: Nearby = straight lines, distant = curved lines (no manual toggle)
 - **Emergent patterns**: Feedback loops, echo chambers, and isolation become visually obvious
 - **Medium-specific forces**: Embodied connections pull strongly, algorithmic connections span great distances
 
