@@ -243,6 +243,7 @@ npm run dev
 ## Future Development
 
 Planned features:
+- [ ] Node hover interactions (highlight node + neighbors + edges on rollover)
 - [ ] Control panel for adjusting coupling constants (k₁, k₂)
 - [ ] Time-series charts for metrics
 - [ ] Node detail view (click to inspect individual state)

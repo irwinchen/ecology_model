@@ -268,14 +268,19 @@ FORCE_LAYOUT_CONFIG = {
 
 ### Possible Improvements
 
-1. **Interactive force tuning**: UI controls to adjust force strengths in real-time
-2. **Time-lapse layout**: Animate the force-directed process (show emergence)
-3. **Cluster detection**: Automatic detection and labeling of communities
-4. **Bridge highlighting**: Identify and highlight nodes that bridge clusters
-5. **Metrics overlay**: Show polarization, clustering coefficient, etc.
-6. **Era transitions**: Animate morphing from one era's layout to another
-7. **Node labels**: Show node IDs or roles on hover
-8. **Edge bundling**: Group parallel edges for dense networks
+1. **Node hover interactions**: Rollover a node to highlight it, its neighbors, and connecting edges
+   - Three.js raycasting for mouse detection
+   - Highlight connected nodes and edges
+   - Optional tooltip with node info (role, cognitive load, connections)
+   - Smooth fade animations
+2. **Interactive force tuning**: UI controls to adjust force strengths in real-time
+3. **Time-lapse layout**: Animate the force-directed process (show emergence)
+4. **Cluster detection**: Automatic detection and labeling of communities
+5. **Bridge highlighting**: Identify and highlight nodes that bridge clusters
+6. **Metrics overlay**: Show polarization, clustering coefficient, etc.
+7. **Era transitions**: Animate morphing from one era's layout to another
+8. **Node labels**: Show node IDs or roles on hover
+9. **Edge bundling**: Group parallel edges for dense networks
 
 ### Research Questions
 

@@ -15,27 +15,27 @@ const COLORS = {
     background_start: 0xF5F1E8,
     background_end: 0xE8DEC8,
     fog: 0xE8DEC8,
-    consumer: 0x6B8E7F,
-    creator: 0xB8956A,
-    broadcaster: 0x9B6B5C,
-    embodied: 0x8B7355,
-    print: 0x5A7B6F,
-    broadcast: 0xC4886B,
-    internet: 0x7B8BA3,
-    algorithmic: 0xA67B8C,
+    consumer: 0x2D9B8A,      // Vibrant teal (was 0x6B8E7F)
+    creator: 0xE6A83D,       // Bright gold/amber (was 0xB8956A)
+    broadcaster: 0xD94F3D,   // Bright coral red (was 0x9B6B5C)
+    embodied: 0xA86F4A,      // Richer brown (was 0x8B7355)
+    print: 0x2D8A75,         // Deep green (was 0x5A7B6F)
+    broadcast: 0xE67A4D,     // Bright orange (was 0xC4886B)
+    internet: 0x4D7ABF,      // Vibrant blue (was 0x7B8BA3)
+    algorithmic: 0xC94FA3,   // Bright magenta (was 0xA67B8C)
   },
   dark: {
     background_start: 0x1C1814,
     background_end: 0x0F0D0A,
     fog: 0x0F0D0A,
-    consumer: 0x7BA393,
-    creator: 0xCBA87A,
-    broadcaster: 0xAF7D6F,
-    embodied: 0xA38B6F,
-    print: 0x6B9485,
-    broadcast: 0xD69B7F,
-    internet: 0x8B9BB8,
-    algorithmic: 0xB88B9F,
+    consumer: 0x3DCCB3,      // Bright cyan/teal (was 0x7BA393)
+    creator: 0xFFBF47,       // Vibrant gold (was 0xCBA87A)
+    broadcaster: 0xFF6B5C,   // Bright salmon/coral (was 0xAF7D6F)
+    embodied: 0xD9964D,      // Bright tan/brown (was 0xA38B6F)
+    print: 0x47CC9E,         // Bright mint green (was 0x6B9485)
+    broadcast: 0xFFAA75,     // Bright peach/orange (was 0xD69B7F)
+    internet: 0x5C9EFF,      // Bright sky blue (was 0x8B9BB8)
+    algorithmic: 0xE066CC,   // Vibrant pink/magenta (was 0xB88B9F)
   }
 };
 
@@ -46,7 +46,6 @@ export class Visualizer {
     this.config = network_data.config;
 
     // Visualization options
-    this.edge_style = options.edge_style || 'straight'; // 'straight' or 'curved'
     this.theme = options.theme || 'light'; // 'light' or 'dark'
 
     // Three.js components
@@ -233,9 +232,9 @@ export class Visualizer {
       });
 
       const sprite = new THREE.Sprite(material);
-      sprite.scale.set(4, 4, 1); // Size of circle
+      sprite.scale.set(2.5, 2.5, 1); // Reduced size for less crowding
       sprite.position.set(node.position.x, node.position.y, node.position.z);
-      sprite.userData = { node: node, base_scale: 4 };
+      sprite.userData = { node: node, base_scale: 2.5 };
 
       this.scene.add(sprite);
       this.node_meshes.set(node.id, sprite);
@@ -247,21 +246,40 @@ export class Visualizer {
    */
   createEdges() {
     const camera_distance = this.camera.position.length();
+    const maxEdges = this.config.max_rendered_edges || Infinity;
+    let edgesToRender;
 
-    this.network_data.edges.forEach((edge) => {
-      // Check if edge should be rendered
-      if (!shouldRenderEdge(edge, camera_distance, this.config)) {
-        return;
-      }
+    // Use top-N strongest edges approach for massive networks
+    if (this.config.use_top_edges_only) {
+      // Sort all edges by strength (descending)
+      const sortedEdges = [...this.network_data.edges].sort((a, b) => b.strength - a.strength);
 
-      const representation = getEdgeRepresentation(
-        edge,
-        camera_distance,
-        this.config
-      );
+      // Take only the top N strongest edges
+      edgesToRender = sortedEdges.slice(0, maxEdges);
 
-      if (representation === 'full' || representation === 'simple') {
-        this.createEdgeLine(edge, representation);
+      console.log(`Rendering top ${edgesToRender.length} strongest edges (out of ${this.network_data.edges.length} total)`);
+    } else {
+      // Use traditional sampling approach
+      edgesToRender = this.network_data.edges.filter((edge) =>
+        shouldRenderEdge(edge, camera_distance, this.config)
+      ).slice(0, maxEdges);
+    }
+
+    // Render the selected edges
+    edgesToRender.forEach((edge) => {
+      // When using top-edges approach, always render (ignore LOD)
+      if (this.config.use_top_edges_only) {
+        this.createEdgeLine(edge, 'simple');
+      } else {
+        const representation = getEdgeRepresentation(
+          edge,
+          camera_distance,
+          this.config
+        );
+
+        if (representation === 'full' || representation === 'simple') {
+          this.createEdgeLine(edge, representation);
+        }
       }
     });
   }
@@ -307,35 +325,40 @@ export class Visualizer {
 
     // Color and opacity
     const color = this.getEdgeColor(edge.medium);
-    let opacity;
+    let baseOpacity;
 
+    // Reduced base opacity for better depth perception
     switch (edge.medium) {
       case 'embodied':
-        opacity = 0.4;
+        baseOpacity = 0.3;  // was 0.4
         break;
       case 'print':
-        opacity = 0.3;
+        baseOpacity = 0.25; // was 0.3
         break;
       case 'broadcast':
-        opacity = 0.25;
+        baseOpacity = 0.2;  // was 0.25
         break;
       case 'internet':
-        opacity = 0.2;
+        baseOpacity = 0.15; // was 0.2
         break;
       case 'algorithmic':
-        opacity = 0.15;
+        baseOpacity = 0.12; // was 0.15
         break;
       default:
-        opacity = 0.3;
+        baseOpacity = 0.25;
     }
 
-    opacity *= edge.strength; // Modulate by edge strength
+    // Apply strength multiplier with emphasis on strong connections
+    const opacity = baseOpacity * Math.pow(edge.strength, 0.7); // Power curve emphasizes strong edges
+
+    // Calculate line width based on strength (range: 1-3)
+    const linewidth = 1 + (edge.strength * 2);
 
     const material = new THREE.LineBasicMaterial({
       color: color,
       opacity: opacity,
       transparent: true,
-      linewidth: 1
+      linewidth: linewidth
     });
 
     const line = new THREE.Line(geometry, material);
@@ -370,26 +393,6 @@ export class Visualizer {
 
     // Generate points along curve
     return curve.getPoints(20); // 20 segments for smooth curve
-  }
-
-  /**
-   * Set edge style and regenerate edges
-   */
-  setEdgeStyle(style) {
-    if (style === this.edge_style) return;
-
-    this.edge_style = style;
-
-    // Remove existing edges
-    this.edge_lines.forEach((line) => {
-      line.geometry.dispose();
-      line.material.dispose();
-      this.scene.remove(line);
-    });
-    this.edge_lines = [];
-
-    // Recreate edges with new style
-    this.createEdges();
   }
 
   /**

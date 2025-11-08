@@ -45,16 +45,22 @@ export class NetworkGenerator {
     // Step 2: Ensure minimum role counts
     ensureMinimumRoles(this.nodes, this.config);
 
-    // Step 3: Position nodes in 3D space
-    this.positionNodes();
+    // Step 3: Initialize random positions first
+    this.initializePositions();
 
     // Step 4: Create connections based on era
     this.createConnections();
 
-    // Step 5: Initialize schismogenesis (for later eras)
+    // Step 5: Pre-compute force strengths for edges (optimization)
+    this.precomputeForceStrengths();
+
+    // Step 6: Run force-directed layout (connections already exist)
+    this.runForceDirectedLayout();
+
+    // Step 7: Initialize schismogenesis (for later eras)
     this.initializeSchismogenesis();
 
-    // Step 6: Initialize double binds (for algorithmic era)
+    // Step 8: Initialize double binds (for algorithmic era)
     this.initializeDoubleBinds();
 
     console.log(
@@ -100,14 +106,13 @@ export class NetworkGenerator {
   }
 
   /**
-   * Position nodes on 2D plane using force-directed layout
-   * Nodes are positioned based on connection forces
+   * Initialize random positions for all nodes
    */
-  positionNodes() {
-    console.log('Running force-directed layout...');
+  initializePositions() {
+    console.log('Initializing node positions...');
 
-    // Initialize random positions on plane
-    const spread = Math.sqrt(this.nodes.length) * 10;
+    // Large spread for larger networks (was * 10, now * 40)
+    const spread = Math.sqrt(this.nodes.length) * 40;
     this.nodes.forEach((node) => {
       node.position.x = (this.rng() - 0.5) * spread;
       node.position.y = (this.rng() - 0.5) * spread;
@@ -116,6 +121,60 @@ export class NetworkGenerator {
       // Initialize velocity for simulation
       node.velocity = { x: 0, y: 0 };
     });
+  }
+
+  /**
+   * Pre-compute force strengths for all edges
+   * This avoids O(n²) lookups during force-directed layout
+   */
+  precomputeForceStrengths() {
+    console.log('Pre-computing edge force strengths...');
+
+    // Build a map of embodied connections for fast lookup
+    const embodiedMap = new Map();
+
+    this.edges.forEach((edge) => {
+      if (edge.medium === 'embodied') {
+        const key1 = `${edge.source}-${edge.target}`;
+        const key2 = `${edge.target}-${edge.source}`;
+        embodiedMap.set(key1, true);
+        embodiedMap.set(key2, true);
+      }
+    });
+
+    // Pre-compute force strength for each edge
+    this.edges.forEach((edge) => {
+      // Get base attraction strength based on medium
+      let force_strength = FORCE_LAYOUT_CONFIG.attraction_forces[edge.medium] || 0.3;
+
+      // Special handling for internet connections
+      if (edge.medium === 'internet') {
+        // Check if these nodes also have an embodied connection
+        const key = `${edge.source}-${edge.target}`;
+        const hasEmbodiedConnection = embodiedMap.has(key);
+
+        if (!hasEmbodiedConnection) {
+          // Only 25% of non-embodied internet connections have pull
+          if (this.rng() > 0.25) {
+            force_strength = 0; // No pull for this edge
+          }
+        }
+        // If they do have embodied connection, use full internet attraction (0.3)
+      }
+
+      // Store the computed force strength on the edge
+      edge.force_strength = force_strength;
+    });
+
+    console.log('Force strengths pre-computed');
+  }
+
+  /**
+   * Run force-directed layout using pre-computed edge forces
+   * Nodes are positioned based on connection forces
+   */
+  runForceDirectedLayout() {
+    console.log('Running force-directed layout...');
 
     // Run force-directed simulation
     let temperature = FORCE_LAYOUT_CONFIG.initial_temperature;
@@ -146,6 +205,12 @@ export class NetworkGenerator {
 
       // Apply attractive forces from edges (must be done after repulsion)
       this.edges.forEach((edge) => {
+        // Use pre-computed force strength (avoids O(n²) lookups)
+        const attraction_strength = edge.force_strength;
+
+        // Skip if attraction strength is 0
+        if (attraction_strength === 0) return;
+
         const source = this.nodes[edge.source];
         const target = this.nodes[edge.target];
 
@@ -153,8 +218,6 @@ export class NetworkGenerator {
         const dy = target.position.y - source.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy) + 0.01;
 
-        // Get attraction strength based on medium
-        const attraction_strength = FORCE_LAYOUT_CONFIG.attraction_forces[edge.medium] || 0.3;
         const attraction = attraction_strength * edge.strength * distance * 0.1;
 
         const fx = (dx / distance) * attraction;
@@ -212,28 +275,42 @@ export class NetworkGenerator {
    * Create connections based on era characteristics
    */
   createConnections() {
+    console.log('Creating connections...');
+
     // Embodied connections (face-to-face, Dunbar's limit)
+    console.log('  Creating embodied connections...');
     this.createEmbodiedConnections();
+    console.log(`  ✓ ${this.edges.filter(e => e.medium === 'embodied').length} embodied edges created`);
 
     // Print connections (for literate nodes)
     if (this.config.print_access_rate > 0) {
+      console.log('  Creating print connections...');
       this.createPrintConnections();
+      console.log(`  ✓ ${this.edges.filter(e => e.medium === 'print').length} print edges created`);
     }
 
     // Broadcast connections (parasocial)
     if (this.config.broadcast_access_rate > 0) {
+      console.log('  Creating broadcast connections...');
       this.createBroadcastConnections();
+      console.log(`  ✓ ${this.edges.filter(e => e.medium === 'broadcast').length} broadcast edges created`);
     }
 
     // Internet connections
     if (this.config.internet_access_rate > 0) {
+      console.log('  Creating internet connections...');
       this.createInternetConnections();
+      console.log(`  ✓ ${this.edges.filter(e => e.medium === 'internet').length} internet edges created`);
     }
 
     // Algorithmic connections (social media)
     if (this.config.algorithm_engagement_weight > 0) {
+      console.log('  Creating algorithmic connections...');
       this.createAlgorithmicConnections();
+      console.log(`  ✓ ${this.edges.filter(e => e.medium === 'algorithmic').length} algorithmic edges created`);
     }
+
+    console.log(`Total edges created: ${this.edges.length}`);
   }
 
   /**
@@ -490,6 +567,19 @@ export class NetworkGenerator {
       (n) => n.double_bind.in_double_bind
     ).length;
     console.log(`Initialized double binds: ${trapped_count} users trapped`);
+  }
+
+  /**
+   * Check if two nodes have an embodied connection between them
+   */
+  hasEmbodiedConnectionBetween(nodeA, nodeB) {
+    // Check if nodeA has an embodied connection to nodeB
+    const hasConnection = this.edges.some((edge) =>
+      edge.medium === 'embodied' &&
+      ((edge.source === nodeA.id && edge.target === nodeB.id) ||
+       (edge.source === nodeB.id && edge.target === nodeA.id))
+    );
+    return hasConnection;
   }
 
   /**

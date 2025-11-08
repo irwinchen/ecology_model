@@ -160,11 +160,15 @@ export const ERA_CONFIGS = {
     min_creators: 200,
 
     // Rendering optimization (CRITICAL for performance)
-    edge_render_sample: 0.15, // Render only 15% of edges
-    edge_strength_threshold: 0.4, // Only render stronger edges
+    use_top_edges_only: true, // Render only the strongest N edges (ignores sampling)
+    max_rendered_edges: 15000, // Render top 15k strongest edges
     use_lod: true, // Use level-of-detail rendering
     lod_distance_near: 50, // Full detail within 50 units
     lod_distance_far: 200, // Point sprites beyond 200 units
+
+    // Legacy (not used when use_top_edges_only is true)
+    edge_render_sample: 0.05,
+    edge_strength_threshold: 0.6,
 
     // Schismogenesis sampling
     schismogenesis_sample_rate: 0.03, // 3% participate (still 240 nodes)
@@ -291,21 +295,21 @@ export function getEdgeRepresentation(edge, camera_distance, config) {
 export const FORCE_LAYOUT_CONFIG = {
   // Force strengths by connection medium
   attraction_forces: {
-    embodied: 0.8,      // Strong pull - tight clusters
-    print: 0.4,         // Medium pull
-    broadcast: 0.2,     // Weak pull - hub-and-spoke
-    internet: 0.3,      // Medium pull
-    algorithmic: 0.15   // Very weak pull - can span distance
+    embodied: 0.5,      // Strong pull - tight clusters (reduced for larger networks)
+    print: 0.25,        // Medium pull (reduced)
+    broadcast: 0.15,    // Weak pull - hub-and-spoke (reduced)
+    internet: 0.2,      // Medium pull (only 25% active, or if also embodied) (reduced)
+    algorithmic: 0.0    // NO pull - doesn't affect spatial layout
   },
 
   // Repulsion between all nodes (prevents overlap)
-  repulsion_strength: 100,
-  repulsion_distance: 50,
+  repulsion_strength: 800,   // Strong repulsion for 8k nodes
+  repulsion_distance: 200,   // Large repulsion range
 
   // Layout parameters
   iterations: 300,           // Number of simulation steps
   cooling_factor: 0.95,      // Velocity damping per iteration
-  initial_temperature: 100,  // Initial movement energy
+  initial_temperature: 200,  // High initial movement energy
 
   // Distance threshold for edge rendering
   edge_distance_threshold: 150,  // < threshold = straight, >= threshold = curved

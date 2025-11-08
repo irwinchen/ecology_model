@@ -16,12 +16,10 @@ class App {
     this.simulating = false;
     this.simulation_interval = null;
     this.currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    this.currentEdgeStyle = 'straight';
 
     // DOM elements
     this.container = document.getElementById('container');
     this.eraSelect = document.getElementById('era-select');
-    this.edgeStyleSelect = document.getElementById('edge-style-select');
     this.themeToggle = document.getElementById('theme-toggle');
     this.generateBtn = document.getElementById('generate-btn');
     this.simulateBtn = document.getElementById('simulate-btn');
@@ -55,9 +53,6 @@ class App {
     this.simulateBtn.addEventListener('click', () => this.toggleSimulation());
     this.resetBtn.addEventListener('click', () => this.reset());
     this.themeToggle.addEventListener('click', () => this.toggleTheme());
-    this.edgeStyleSelect.addEventListener('change', (e) =>
-      this.changeEdgeStyle(e.target.value)
-    );
     this.sidebarToggleBtn.addEventListener('click', () => this.toggleControlPanel());
     this.statsToggle.addEventListener('click', () => this.toggleStatsPanel());
   }
@@ -93,20 +88,6 @@ class App {
   }
 
   /**
-   * Change edge style (straight/curved)
-   */
-  changeEdgeStyle(style) {
-    this.currentEdgeStyle = style;
-
-    // Update visualizer edge style if it exists
-    if (this.visualizer) {
-      this.visualizer.setEdgeStyle(style);
-    }
-
-    console.log(`Edge style changed to ${style}`);
-  }
-
-  /**
    * Generate network for selected era
    */
   async generateNetwork() {
@@ -135,10 +116,9 @@ class App {
       this.generator = new NetworkGenerator(era);
       this.network_data = this.generator.generate();
 
-      // Create visualization with current theme and edge style
+      // Create visualization with current theme
       this.visualizer = new Visualizer(this.container, this.network_data, {
-        theme: this.currentTheme,
-        edge_style: this.currentEdgeStyle
+        theme: this.currentTheme
       });
       this.visualizer.init();
 

@@ -23,17 +23,17 @@
   --color-text-secondary: #6B5D52;
   --color-text-tertiary: #9B8D82;
 
-  /* Accent Colors - Desaturated, Earthy */
-  --color-embodied: #8B7355;
-  --color-print: #5A7B6F;
-  --color-broadcast: #C4886B;
-  --color-internet: #7B8BA3;
-  --color-algorithmic: #A67B8C;
+  /* Accent Colors - Vibrant */
+  --color-embodied: #A86F4A;
+  --color-print: #2D8A75;
+  --color-broadcast: #E67A4D;
+  --color-internet: #4D7ABF;
+  --color-algorithmic: #C94FA3;
 
   /* Node Roles */
-  --color-consumer: #6B8E7F;
-  --color-creator: #B8956A;
-  --color-broadcaster: #9B6B5C;
+  --color-consumer: #2D9B8A;
+  --color-creator: #E6A83D;
+  --color-broadcaster: #D94F3D;
 
   /* UI States */
   --color-focus: #5A7B6F;
@@ -66,17 +66,17 @@
   --color-text-secondary: #C9BFB2;
   --color-text-tertiary: #9B8D82;
 
-  /* Accent Colors - Slightly brighter for dark mode */
-  --color-embodied: #A38B6F;
-  --color-print: #6B9485;
-  --color-broadcast: #D69B7F;
-  --color-internet: #8B9BB8;
-  --color-algorithmic: #B88B9F;
+  /* Accent Colors - Vibrant for dark mode */
+  --color-embodied: #D9964D;
+  --color-print: #47CC9E;
+  --color-broadcast: #FFAA75;
+  --color-internet: #5C9EFF;
+  --color-algorithmic: #E066CC;
 
   /* Node Roles */
-  --color-consumer: #7BA393;
-  --color-creator: #CBA87A;
-  --color-broadcaster: #AF7D6F;
+  --color-consumer: #3DCCB3;
+  --color-creator: #FFBF47;
+  --color-broadcaster: #FF6B5C;
 
   /* UI States */
   --color-focus: #6B9485;
