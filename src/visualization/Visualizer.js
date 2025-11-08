@@ -110,8 +110,12 @@ export class Visualizer {
     // Create visualization
     this.createVisualization();
 
-    // Start animation
-    this.start();
+    // Render one frame to compile shaders before starting animation
+    // This prevents WebGL INVALID_OPERATION errors
+    this.renderer.render(this.scene, this.camera);
+
+    // Start animation after a small delay to ensure materials are compiled
+    requestAnimationFrame(() => this.start());
   }
 
   /**
