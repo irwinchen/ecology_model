@@ -132,9 +132,13 @@ export const ERA_CONFIGS = {
     // Guaranteed minimums
     min_creators: 100,
 
-    // Rendering optimization
-    edge_render_sample: 0.2, // Render 20% of edges
-    edge_strength_threshold: 0.3, // Only render edges with strength > 0.3
+    // Rendering optimization (CRITICAL for performance)
+    use_top_edges_only: true, // Render only the strongest N edges
+    max_rendered_edges: 12000, // Render top 12k strongest edges
+
+    // Legacy (not used when use_top_edges_only is true)
+    edge_render_sample: 0.2,
+    edge_strength_threshold: 0.3,
 
     // Schismogenesis sampling
     schismogenesis_sample_rate: 0.05, // 5% of each tribe participates
