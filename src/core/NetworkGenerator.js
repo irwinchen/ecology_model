@@ -52,7 +52,7 @@
 
 import Node from './Node.js';
 import FeedbackLoop from './FeedbackLoop.js';
-import { ERA_CONFIGS, FORCE_LAYOUT_CONFIG } from './config.js';
+import { ERA_CONFIGS, FORCE_LAYOUT_CONFIG, ROLE_THRESHOLDS } from './config.js';
 
 export class NetworkGenerator {
   constructor(era_key, seed = null) {
@@ -801,9 +801,6 @@ export class NetworkGenerator {
    */
   assignEmergentRoles() {
     console.log('Assigning emergent roles based on follower count...');
-
-    // Import role thresholds from config
-    const { ROLE_THRESHOLDS } = require('./config.js');
 
     // Count followers and assign roles for each node
     this.nodes.forEach(node => {
