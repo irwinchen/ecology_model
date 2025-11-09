@@ -1,8 +1,97 @@
 /**
  * Visualizer.js
  *
- * Three.js visualization for the Orality network model.
- * Academic aesthetic with flat circles and optional curved edges.
+ * THEORETICAL FOUNDATION: VISUALIZATION AS EPISTEMOLOGY
+ *
+ * This module transforms abstract network data into visual form. But visualization
+ * is never neutral - it's an argument about what matters and how to see it.
+ *
+ * KEY THEORETICAL COMMITMENTS:
+ *
+ * 1. TUFTE'S PRINCIPLES ("The Visual Display of Quantitative Information", 1983)
+ *    - Maximize data-ink ratio (remove chartjunk)
+ *    - Flat circles, simple lines - no unnecessary decoration
+ *    - Color encodes meaning (role, medium type)
+ *    - Size encodes importance (follower count, role hierarchy)
+ *
+ * 2. BATESON'S "DIFFERENCE THAT MAKES A DIFFERENCE"
+ *    - What we choose to visualize reflects what we consider significant
+ *    - Node size: Role hierarchy + follower count = influence
+ *    - Edge opacity: Connection strength = relationship depth
+ *    - Spatial layout: Physical proximity = social affinity
+ *    - These are CLAIMS about what constitutes meaningful difference
+ *
+ * 3. SPATIAL METAPHOR AS ANALYTICAL TOOL
+ *    - We use space to represent social distance (conceptual blending)
+ *    - This is not arbitrary - spatial cognition is fundamental to human thought
+ *    - "Close friend," "distant relative," "social circles" - language reveals
+ *      the deep metaphor linking space and relationship
+ *    - The force-directed layout MATERIALIZES this metaphor
+ *
+ * 4. STRATIFIED SAMPLING AS FAIR REPRESENTATION
+ *    - With 8,000 nodes and millions of edges, we can't render everything
+ *    - Naive random sampling would oversample common connections (algorithmic)
+ *    - Stratified sampling ensures ALL media types are represented proportionally
+ *    - This is an epistemological choice: preserve diversity over raw frequency
+ *
+ * DESIGN DECISIONS AND THEIR RATIONALES:
+ *
+ * A. FLAT 2D CIRCLES (Sprites)
+ *    - Academic aesthetic (not game-like or flashy)
+ *    - Echoes scientific diagrams (molecular, social network diagrams)
+ *    - Simplicity focuses attention on structure, not rendering
+ *
+ * B. COLOR CODING BY ROLE AND MEDIUM
+ *    - Influencers: Purple (royalty, prominence)
+ *    - Creators: Gold (value creation)
+ *    - Broadcasters: Red (attention, broadcast)
+ *    - Consumers: Teal (majority, calm)
+ *    - Each medium type has distinct color
+ *    - Allows pattern recognition at a glance
+ *
+ * C. CURVED vs STRAIGHT EDGES
+ *    - Short connections: Straight (local, tight)
+ *    - Long connections: Curved (distant, reaching across network)
+ *    - Visual metaphor: Tension in long-distance relationships
+ *    - Aesthetic: Reduces visual clutter from crossing lines
+ *
+ * D. OPACITY MAPPING
+ *    - Strength-based opacity: Strong ties visible, weak ties fade
+ *    - Power curve (strength^0.7) emphasizes strong connections
+ *    - Reveals the "skeleton" of the network (core structure)
+ *    - Weak ties recede (they're there, but not dominant visually)
+ *
+ * E. DYNAMIC VISUAL STATES
+ *    - Cognitive overload: Node pulses, grows
+ *    - Double bind stress: Pulsing animation
+ *    - Emotional agitation: Increased opacity
+ *    - The visualization SHOWS the psychological state of the system
+ *
+ * CONNECTION TO ORALITY PROJECT:
+ *
+ * The visualization makes visible what's normally invisible: the ECOLOGY of
+ * communication. You can SEE:
+ * - How oral culture forms tight clusters (villages)
+ * - How print creates dispersed but connected communities
+ * - How broadcast creates star patterns (celebrity hubs)
+ * - How internet fragments into topic islands
+ * - How algorithmic era creates dispersion despite maximum "connection"
+ *
+ * This is "Living Memory" (Orality project node) - the network diagram becomes
+ * a shared artifact for thinking about communication structure. It externalizes
+ * the invisible ecology, making it available for collective reflection.
+ *
+ * EPISTEMOLOGICAL HUMILITY:
+ *
+ * All visualization is simplification. We're collapsing high-dimensional
+ * complexity into 2D space and color. What's lost:
+ * - Temporal dynamics (we show a snapshot, not evolution)
+ * - Individual variation (nodes are stereotyped by role)
+ * - Nuance of relationship quality (reduced to strength number)
+ *
+ * But what's gained is PATTERN RECOGNITION at scale. We can SEE structures
+ * that would be invisible in tables or equations. This is the power and
+ * limitation of visualization as a way of knowing.
  */
 
 import * as THREE from 'three';
@@ -286,6 +375,50 @@ export class Visualizer {
 
   /**
    * Create edge lines (straight or curved)
+   *
+   * THEORETICAL NOTE: STRATIFIED SAMPLING AS EPISTEMOLOGICAL FAIRNESS
+   *
+   * When networks grow large (8,000 nodes, 3.6M edges), we face a fundamental
+   * problem: we can't render everything without crashing the GPU.
+   *
+   * TWO SAMPLING APPROACHES:
+   *
+   * 1. NAIVE RANDOM SAMPLING
+   *    - Pick N edges at random
+   *    - Problem: Algorithmic connections are 90%+ of all edges
+   *    - Result: Visualization shows ONLY algorithmic connections
+   *    - This misrepresents the network structure
+   *
+   * 2. STRATIFIED SAMPLING (Implemented here)
+   *    - Group edges by medium type (embodied, print, broadcast, internet, algorithmic)
+   *    - Allocate render budget PROPORTIONALLY to each medium's share
+   *    - Within each medium, select the STRONGEST connections
+   *    - Result: All media types visible, proportional to their actual presence
+   *
+   * WHY THIS MATTERS:
+   *
+   * Stratified sampling embodies a theoretical claim: that DIVERSITY of connection
+   * types is as important as FREQUENCY. We want to see:
+   * - The embodied core (even though it's <5% of edges)
+   * - Print networks (rare but structurally important)
+   * - Broadcast hubs (few but high-impact)
+   * - Internet clusters (moderate frequency)
+   * - Algorithmic flood (dominant numerically)
+   *
+   * If we sampled randomly, embodied connections would be nearly invisible
+   * (statistically drowned out). But theoretically, they're the FOUNDATION -
+   * everything else builds on embodied relationships.
+   *
+   * This is an epistemological choice: represent the ECOLOGY, not just the
+   * dominant species. It's Bateson's "pattern that connects" - we're looking
+   * for structure across levels, not just raw counts.
+   *
+   * TECHNICAL IMPLEMENTATION:
+   * - Calculate each medium's proportion of total edges
+   * - Allocate render slots proportionally
+   * - Sort edges by strength (descending)
+   * - Take top N strongest from each medium
+   * - This ensures we see the "skeleton" of each communication mode
    */
   createEdges() {
     const camera_distance = this.camera.position.length();

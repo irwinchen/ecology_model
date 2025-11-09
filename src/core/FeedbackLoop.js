@@ -1,8 +1,58 @@
 /**
  * FeedbackLoop.js
  *
- * Represents a feedback loop between nodes in the network.
- * Can be positive (amplifying) or negative (stabilizing).
+ * THEORETICAL FOUNDATION: CYBERNETIC FEEDBACK AS THE HEART OF COMMUNICATION
+ *
+ * This module implements Gregory Bateson's cybernetic theory of communication
+ * and Norbert Wiener's feedback loop mathematics. It is the ENGINE of dynamics
+ * in the network model.
+ *
+ * KEY CONCEPTS:
+ *
+ * 1. FEEDBACK AS CIRCULAR CAUSALITY (Bateson, "Steps to an Ecology of Mind")
+ *    - Linear causality: A → B → C (one-way)
+ *    - Circular causality: A → B → A (recursive, self-modifying)
+ *    - Communication is ALWAYS circular - we respond to responses
+ *    - This is what makes communication different from mere transmission
+ *
+ * 2. POSITIVE vs NEGATIVE FEEDBACK (Wiener, "Cybernetics", 1948)
+ *    - NEGATIVE feedback: Dampens deviation, maintains equilibrium (thermostat)
+ *      * Enables homeostasis
+ *      * Stabilizes systems
+ *      * Example: Shame regulates social excess in oral culture
+ *    - POSITIVE feedback: Amplifies deviation, creates runaway dynamics (microphone screech)
+ *      * Enables change and evolution
+ *      * Can become pathological if unchecked
+ *      * Example: Social media outrage spirals
+ *
+ * 3. BATESON'S SCHISMOGENESIS (Implemented as positive feedback)
+ *    - Symmetrical: dX/dt = k₁·Y, dY/dt = k₂·X (both escalate together)
+ *    - Complementary: dX/dt = k₁·Y, dY/dt = -k₂·X (one rises, other falls)
+ *
+ * 4. DOUBLE BIND (Bateson et al., 1956)
+ *    - Contradictory injunctions at different logical levels
+ *    - Cannot escape without violating one injunction
+ *    - Creates pathological stress dynamics
+ *    - Digital double bind: "Must engage" vs "Engagement harms you"
+ *
+ * WHY THIS MATTERS FOR THE ORALITY PROJECT:
+ *
+ * The transition from oral to literate to digital changes the BALANCE between
+ * positive and negative feedback:
+ *
+ * - Oral culture: Negative feedback dominates (face-to-face regulation)
+ * - Print culture: Reduced feedback (one-way transmission)
+ * - Broadcast: Almost no feedback (parasocial)
+ * - Internet: Feedback returns but is mediated
+ * - Algorithmic: Positive feedback dominates (engagement optimization)
+ *
+ * The algorithmic era deliberately AMPLIFIES positive feedback (controversy drives
+ * engagement) while REMOVING negative feedback (no embodied consequences). This
+ * creates runaway dynamics that overwhelm human regulatory capacity.
+ *
+ * This is the core mechanism of the "Cybernetic Homeostasis" node in the
+ * Orality project - showing how different media create different feedback
+ * ecologies, with profound psychological consequences.
  */
 
 export class FeedbackLoop {
@@ -69,6 +119,47 @@ export class FeedbackLoop {
   /**
    * Symmetrical schismogenesis: dX/dt = k₁·Y, dY/dt = k₂·X
    * Both parties escalate together (e.g., flame war)
+   *
+   * THEORETICAL DEEP DIVE: BATESON'S SYMMETRICAL SCHISMOGENESIS
+   *
+   * In "Naven" (1936), Bateson observed how Iatmul men engaged in competitive
+   * display that fed upon itself - each man's boasting provoked more boasting
+   * from rivals, in an escalating spiral. He formalized this as:
+   *
+   * dX/dt = k₁·Y  (Party A's escalation driven by Party B's level)
+   * dY/dt = k₂·X  (Party B's escalation driven by Party A's level)
+   *
+   * KEY INSIGHTS:
+   *
+   * 1. MUTUAL AMPLIFICATION
+   *    - The more you escalate, the more I escalate
+   *    - The more I escalate, the more you escalate
+   *    - This is POSITIVE FEEDBACK - self-reinforcing
+   *
+   * 2. EXPONENTIAL GROWTH
+   *    - If k₁·k₂ > 0, the system grows exponentially
+   *    - Solution: X(t) ~ e^(√(k₁k₂)·t)
+   *    - Without dampening, escalation becomes infinite
+   *
+   * 3. CRITICAL INITIAL CONDITIONS
+   *    - Must seed with non-zero values (0.05) to kick off dynamics
+   *    - Real-world parallel: A small provocation sparks a flame war
+   *    - Bateson called this the "schismogenetic potential" of a situation
+   *
+   * 4. DIGITAL AMPLIFICATION
+   *    - In oral culture: Face-to-face shame provides natural dampening
+   *    - In algorithmic culture: Engagement metrics REWARD escalation
+   *    - The algorithm effectively increases k₁ and k₂, accelerating spirals
+   *
+   * EXAMPLES:
+   * - Political polarization: Each side's extremism justifies the other's
+   * - Arms races: Each nation's buildup provokes the other's
+   * - Twitter flame wars: Each reply escalates the conflict
+   * - Conspiracy theories: Each "revelation" provokes more speculation
+   *
+   * This connects to "Agonistic Dynamics" in the Orality project - showing
+   * how natural human contest becomes pathological when removed from embodied
+   * regulatory feedback.
    */
   executeSymmetricalSchismogenesis() {
     // Set up schismogenesis state if not already initialized
@@ -78,6 +169,7 @@ export class FeedbackLoop {
       this.source.schismogenesis_state.k2 = this.k2;
       // CRITICAL: Initialize with small random value to kick off dynamics
       // Otherwise dX/dt = k1*0 = 0 forever
+      // This models the "spark" that ignites polarization
       this.source.schismogenesis_state.X = Math.random() * 0.05; // 0 to 0.05
     }
 
@@ -90,6 +182,7 @@ export class FeedbackLoop {
     }
 
     // Link the escalation levels (source.X influences target.Y and vice versa)
+    // This creates the CIRCULAR CAUSALITY that drives escalation
     this.target.schismogenesis_state.Y = this.source.schismogenesis_state.X;
     this.source.schismogenesis_state.Y = this.target.schismogenesis_state.X;
 
@@ -137,22 +230,71 @@ export class FeedbackLoop {
 
   /**
    * Execute negative feedback (stabilizing, homeostatic)
+   *
+   * THEORETICAL FOUNDATION: NEGATIVE FEEDBACK AS LIFE-SUSTAINING REGULATION
+   *
+   * While positive feedback gets attention (it's dramatic!), negative feedback
+   * is the unsung hero of biological and social systems. This implements
+   * principles from:
+   *
+   * 1. W. Ross Ashby's "Design for a Brain" (1952)
+   *    - Living systems maintain viability through negative feedback
+   *    - Deviations from equilibrium trigger corrective responses
+   *    - This is HOMEOSTASIS - the fundamental cybernetic process
+   *
+   * 2. Bateson's "Cybernetic Explanation" (Steps to an Ecology of Mind)
+   *    - Negative feedback is what allows systems to have "purpose"
+   *    - The system seeks a target state (homeostatic setpoint)
+   *    - Error correction minimizes distance from target
+   *
+   * 3. Connection to Oral Culture
+   *    - Face-to-face communication provides immediate negative feedback
+   *    - You see someone's face when you offend them → you moderate
+   *    - Community shame regulates deviant behavior → social homeostasis
+   *    - This is the "Homeostasis" node in the Orality project
+   *
+   * WHAT THIS CODE DOES:
+   *
+   * 1. EMOTIONAL REGULATION
+   *    - If emotional_state > setpoint: Pull it down
+   *    - If emotional_state < setpoint: Pull it up
+   *    - Proportional correction (deviation × strength)
+   *    - This is a PID controller's "P" term
+   *
+   * 2. COGNITIVE LOAD REDUCTION
+   *    - Gradually decrease information overload
+   *    - Models: Sleep, rest, processing time
+   *    - Without this, cognitive load would only increase
+   *
+   * 3. REGULATORY CAPACITY SUPPORT
+   *    - Strengthen ability to self-regulate over time
+   *    - Models: Learning coping skills, building resilience
+   *    - This is Bateson's "deutero-learning" - learning to regulate
+   *
+   * WHY ALGORITHMIC ERA BREAKS THIS:
+   * - Infinite scroll removes natural stopping points
+   * - Engagement optimization fights against disengagement
+   * - No embodied feedback to signal overload
+   * - Result: Homeostatic mechanisms are overwhelmed
+   *
+   * This negative feedback represents what's MISSING in algorithmic communication.
    */
   executeNegativeFeedback() {
     // Negative feedback dampens deviation from equilibrium
-    // Helps maintain homeostasis
+    // Helps maintain homeostasis (Ashby's "Design for a Brain")
 
     // Pull emotional state toward homeostatic setpoint
+    // This is classic error-correction: correction ∝ (current - target)
     const deviation = this.target.emotional_state - this.target.homeostatic_setpoint;
     const correction = deviation * this.strength * 0.1;
     this.target.emotional_state -= correction;
     this.target.emotional_state = Math.max(0, Math.min(1, this.target.emotional_state));
 
-    // Reduce cognitive load
+    // Reduce cognitive load (models rest, sleep, processing)
     this.target.cognitive_load -= this.target.cognitive_load * this.strength * 0.05;
     this.target.cognitive_load = Math.max(0, this.target.cognitive_load);
 
-    // Support regulatory capacity
+    // Support regulatory capacity (deutero-learning: learning to regulate)
     this.target.regulatory_capacity += this.strength * 0.01;
     this.target.regulatory_capacity = Math.min(1, this.target.regulatory_capacity);
   }
