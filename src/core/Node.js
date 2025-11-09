@@ -11,6 +11,8 @@ export class Node {
     // ===== IDENTITY =====
     this.id = id;
     this.role = 'consumer'; // 'consumer', 'creator', 'broadcaster'
+    this.is_influencer = false; // High-follower-count node (1 per 10k people)
+    this.follower_count = 0; // Number of nodes this node can reach
 
     // ===== TECHNOLOGICAL ACCESS =====
     this.is_literate = false;

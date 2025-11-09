@@ -34,6 +34,7 @@
   --color-consumer: #2D9B8A;
   --color-creator: #E6A83D;
   --color-broadcaster: #D94F3D;
+  --color-influencer: #8B5CF6;
 
   /* UI States */
   --color-focus: #5A7B6F;
@@ -77,6 +78,7 @@
   --color-consumer: #3DCCB3;
   --color-creator: #FFBF47;
   --color-broadcaster: #FF6B5C;
+  --color-influencer: #A78BFA;
 
   /* UI States */
   --color-focus: #6B9485;

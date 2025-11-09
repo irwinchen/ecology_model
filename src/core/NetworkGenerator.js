@@ -51,16 +51,19 @@ export class NetworkGenerator {
     // Step 4: Create connections based on era
     this.createConnections();
 
-    // Step 5: Pre-compute force strengths for edges (optimization)
+    // Step 5: Identify influencers (nodes with most followers)
+    this.identifyInfluencers();
+
+    // Step 6: Pre-compute force strengths for edges (optimization)
     this.precomputeForceStrengths();
 
-    // Step 6: Run force-directed layout (connections already exist)
+    // Step 7: Run force-directed layout (connections already exist)
     this.runForceDirectedLayout();
 
-    // Step 7: Initialize schismogenesis (for later eras)
+    // Step 8: Initialize schismogenesis (for later eras)
     this.initializeSchismogenesis();
 
-    // Step 8: Initialize double binds (for algorithmic era)
+    // Step 9: Initialize double binds (for algorithmic era)
     this.initializeDoubleBinds();
 
     console.log(
@@ -490,8 +493,52 @@ export class NetworkGenerator {
   }
 
   /**
+   * Identify influencers based on follower count
+   * Roughly 1 influencer per 10,000 people
+   */
+  identifyInfluencers() {
+    console.log('Identifying influencers...');
+
+    // Calculate follower count for each node
+    // Follower = someone who receives content from this node
+    const followerCounts = new Map();
+
+    this.nodes.forEach(node => {
+      followerCounts.set(node.id, 0);
+    });
+
+    // Count followers (incoming edges where this node is the source)
+    this.edges.forEach(edge => {
+      const currentCount = followerCounts.get(edge.source) || 0;
+      followerCounts.set(edge.source, currentCount + 1);
+    });
+
+    // Attach follower count to each node
+    this.nodes.forEach(node => {
+      node.follower_count = followerCounts.get(node.id) || 0;
+    });
+
+    // Determine number of influencers (1 per 10,000 people, minimum 1)
+    const influencer_count = Math.max(1, Math.floor(this.nodes.length / 10000));
+
+    // Sort nodes by follower count
+    const nodesByFollowers = [...this.nodes].sort((a, b) => b.follower_count - a.follower_count);
+
+    // Mark top N as influencers
+    for (let i = 0; i < influencer_count && i < nodesByFollowers.length; i++) {
+      nodesByFollowers[i].is_influencer = true;
+    }
+
+    const influencers = this.nodes.filter(n => n.is_influencer);
+    console.log(`✓ Identified ${influencers.length} influencers (avg followers: ${
+      influencers.length > 0 ? Math.round(influencers.reduce((sum, n) => sum + n.follower_count, 0) / influencers.length) : 0
+    })`);
+  }
+
+  /**
    * Initialize schismogenesis (tribal polarization)
    * Mainly for social media and algorithmic eras
+   * Influencers become tribal leaders
    */
   initializeSchismogenesis() {
     if (!this.config.schismogenesis_sample_rate) return;
@@ -500,11 +547,29 @@ export class NetworkGenerator {
       this.nodes.length * this.config.schismogenesis_sample_rate
     );
 
+    // Get influencers to be tribal leaders
+    const influencers = this.nodes.filter(n => n.is_influencer);
+
     // Create two tribes
     const tribe_a = [];
     const tribe_b = [];
 
-    for (let i = 0; i < participants_count / 2; i++) {
+    // Assign influencers as tribal leaders (split them between tribes)
+    influencers.forEach((influencer, index) => {
+      if (index % 2 === 0) {
+        influencer.schismogenesis_state.tribal_affiliation = 'A';
+        influencer.schismogenesis_state.is_tribal_leader = true;
+        tribe_a.push(influencer);
+      } else {
+        influencer.schismogenesis_state.tribal_affiliation = 'B';
+        influencer.schismogenesis_state.is_tribal_leader = true;
+        tribe_b.push(influencer);
+      }
+    });
+
+    // Fill out the rest of the tribes with regular nodes
+    const remaining_slots = participants_count - influencers.length;
+    for (let i = 0; i < remaining_slots / 2; i++) {
       const node_a = this.nodes[Math.floor(this.rng() * this.nodes.length)];
       const node_b = this.nodes[Math.floor(this.rng() * this.nodes.length)];
 
@@ -539,8 +604,11 @@ export class NetworkGenerator {
       this.feedback_loops.push(loop);
     }
 
+    const leader_count_a = tribe_a.filter(n => n.schismogenesis_state.is_tribal_leader).length;
+    const leader_count_b = tribe_b.filter(n => n.schismogenesis_state.is_tribal_leader).length;
+
     console.log(
-      `Initialized schismogenesis: Tribe A (${tribe_a.length}), Tribe B (${tribe_b.length})`
+      `Initialized schismogenesis: Tribe A (${tribe_a.length}, ${leader_count_a} leaders), Tribe B (${tribe_b.length}, ${leader_count_b} leaders)`
     );
   }
 
@@ -617,6 +685,7 @@ export class NetworkGenerator {
   /**
    * Generate content that flows through the network
    * This drives cognitive load and emotional responses
+   * Influencers produce 90% inflammatory content
    */
   generateContent() {
     // Content generation rate depends on era
@@ -634,7 +703,10 @@ export class NetworkGenerator {
       const creator = creators[Math.floor(Math.random() * creators.length)];
 
       // Create content
-      const is_inflammatory = Math.random() < content_rate;
+      // Influencers produce 90% inflammatory content
+      const inflammatory_rate = creator.is_influencer ? 0.9 : content_rate;
+      const is_inflammatory = Math.random() < inflammatory_rate;
+
       const content = {
         type: is_inflammatory ? 'ragebait' : 'normal',
         information_value: is_inflammatory ? -0.5 : Math.random() * 0.3,
@@ -714,10 +786,25 @@ export class NetworkGenerator {
         this.nodes.length,
       percent_pathological:
         this.nodes.filter((n) => n.double_bind.pathological_adaptation).length /
-        this.nodes.length
+        this.nodes.length,
+
+      // Influencers
+      influencer_count: this.nodes.filter((n) => n.is_influencer).length,
+      avg_influencer_followers: this.calculateAvgInfluencerFollowers()
     };
 
     return metrics;
+  }
+
+  /**
+   * Calculate average follower count for influencers
+   */
+  calculateAvgInfluencerFollowers() {
+    const influencers = this.nodes.filter(n => n.is_influencer);
+    if (influencers.length === 0) return 0;
+
+    const totalFollowers = influencers.reduce((sum, n) => sum + n.follower_count, 0);
+    return Math.round(totalFollowers / influencers.length);
   }
 
   /**

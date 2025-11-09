@@ -18,6 +18,7 @@ const COLORS = {
     consumer: 0x2D9B8A,      // Vibrant teal (was 0x6B8E7F)
     creator: 0xE6A83D,       // Bright gold/amber (was 0xB8956A)
     broadcaster: 0xD94F3D,   // Bright coral red (was 0x9B6B5C)
+    influencer: 0x8B5CF6,    // Vibrant purple (high-follower nodes)
     embodied: 0xA86F4A,      // Richer brown (was 0x8B7355)
     print: 0x2D8A75,         // Deep green (was 0x5A7B6F)
     broadcast: 0xE67A4D,     // Bright orange (was 0xC4886B)
@@ -31,6 +32,7 @@ const COLORS = {
     consumer: 0x3DCCB3,      // Bright cyan/teal (was 0x7BA393)
     creator: 0xFFBF47,       // Vibrant gold (was 0xCBA87A)
     broadcaster: 0xFF6B5C,   // Bright salmon/coral (was 0xAF7D6F)
+    influencer: 0xA78BFA,    // Bright lavender purple (high-follower nodes)
     embodied: 0xD9964D,      // Bright tan/brown (was 0xA38B6F)
     print: 0x47CC9E,         // Bright mint green (was 0x6B9485)
     broadcast: 0xFFAA75,     // Bright peach/orange (was 0xD69B7F)
@@ -151,10 +153,18 @@ export class Visualizer {
   }
 
   /**
-   * Get node color based on role and theme
+   * Get node color based on influencer status, role, and theme
+   * Priority: influencer > role
    */
   getNodeColor(node) {
     const colors = COLORS[this.theme];
+
+    // Influencers get purple color regardless of role
+    if (node.is_influencer) {
+      return colors.influencer;
+    }
+
+    // Otherwise use role-based coloring
     switch (node.role) {
       case 'broadcaster':
         return colors.broadcaster;

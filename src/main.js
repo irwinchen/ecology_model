@@ -40,6 +40,8 @@ class App {
     this.emotionalEl = document.getElementById('emotional');
     this.polarizationEl = document.getElementById('polarization');
     this.doubleBindEl = document.getElementById('double-bind');
+    this.influencersEl = document.getElementById('influencers');
+    this.avgFollowersEl = document.getElementById('avg-followers');
 
     // Bind event handlers
     this.setupEventHandlers();
@@ -230,6 +232,11 @@ class App {
     this.doubleBindEl.textContent = `${(
       metrics.percent_in_double_bind * 100
     ).toFixed(1)}%`;
+
+    // Influencer metrics
+    this.influencersEl.textContent = metrics.influencer_count || 0;
+    this.avgFollowersEl.textContent = metrics.avg_influencer_followers ?
+      metrics.avg_influencer_followers.toLocaleString() : '0';
   }
 
   /**
