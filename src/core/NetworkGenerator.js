@@ -460,7 +460,13 @@ export class NetworkGenerator {
    *    - The algorithm connects nearby nodes first, modeling village structure
    *    - This creates natural clustering without imposed hierarchy
    *
-   * 3. CONNECTION TO ORALITY PROJECT
+   * 3. AURA IN EMBODIED SPACE (FOLLOWER ACCUMULATION)
+   *    - Charismatic individuals (high aura) attract slightly more connections
+   *    - BUT: Proximity dominates (you can't network beyond your village)
+   *    - Aura adds ±20% to connection count, not 10x like later media
+   *    - This models "village elder" or "storyteller" roles emerging naturally
+   *
+   * 4. CONNECTION TO ORALITY PROJECT
    *    - Embodied communication is the BASELINE for all human sociality
    *    - Technology extends reach but cannot replace face-to-face depth
    *    - The model shows: even with internet, embodied ties structure the network
@@ -483,8 +489,15 @@ export class NetworkGenerator {
         }))
         .sort((a, b) => a.distance - b.distance);
 
+      // Aura influences connection count slightly (±20%)
+      // High aura = village elder, attracts more conversations
+      // Low aura = recluse, fewer connections
+      const aura_modifier = 0.8 + (node.aura_strength * 0.4); // 0.8 to 1.2
+
       // Create core connections (strong ties)
-      const core_count = Math.floor(this.rng() * core_limit) + 1;
+      const base_core_count = Math.floor(this.rng() * core_limit) + 1;
+      const core_count = Math.floor(base_core_count * aura_modifier);
+
       for (let i = 0; i < Math.min(core_count, nearby.length); i++) {
         const target = nearby[i].node;
         const strength = 0.8 + this.rng() * 0.2; // 0.8 to 1.0
@@ -492,8 +505,10 @@ export class NetworkGenerator {
         this.createEdge(node, target, 'embodied', strength);
       }
 
-      // Create weak ties (up to Dunbar limit)
-      const weak_count = Math.floor(this.rng() * (dunbar_limit - core_count));
+      // Create weak ties (up to Dunbar limit, also modulated by aura)
+      const base_weak_count = Math.floor(this.rng() * (dunbar_limit - core_count));
+      const weak_count = Math.floor(base_weak_count * aura_modifier);
+
       for (
         let i = core_count;
         i < Math.min(core_count + weak_count, nearby.length);
@@ -509,50 +524,119 @@ export class NetworkGenerator {
 
   /**
    * Create print connections (readers and creators)
+   *
+   * FOLLOWER ACCUMULATION MECHANISM: PRINT ERA
+   *
+   * In the print era, follower accumulation is based on:
+   * 1. LITERACY (required to create written content)
+   * 2. CONTENT QUALITY (better writing attracts more readers)
+   * 3. AURA (charisma translates to written voice, but degraded to 30%)
+   *
+   * This implements Walter Ong's insight that print doesn't eliminate orality
+   * but transforms it - written "voice" still carries traces of embodied presence.
+   * Benjamin's "aura" partially survives mechanical reproduction through style.
+   *
+   * Nodes with high (literacy × content_quality × aura) accumulate more followers.
    */
   createPrintConnections() {
-    const creators = this.nodes.filter((n) => n.role === 'creator');
+    // Filter for literate nodes (potential creators)
+    const literate = this.nodes.filter((n) => n.has_print_access && n.is_literate);
     const readers = this.nodes.filter((n) => n.has_print_access);
 
-    creators.forEach((creator) => {
-      // Each creator reaches some readers
-      const reach = Math.floor(this.rng() * 300) + 50; // 50-350 readers
+    if (literate.length === 0 || readers.length === 0) return;
+
+    // Calculate "print appeal" for each literate node
+    // Appeal = content_quality × aura_strength (30% transmission) × literacy
+    literate.forEach((creator) => {
+      const aura_component = creator.aura_strength * this.config.aura_transmission; // 30% for print
+      const appeal = creator.content_quality * (0.5 + aura_component * 0.5);
+
+      // Reach scales with appeal
+      // Base: 50 readers, Max: 500 readers (at max appeal)
+      const base_reach = 50;
+      const max_bonus = 450;
+      const reach = Math.floor(base_reach + (appeal * max_bonus));
 
       for (let i = 0; i < Math.min(reach, readers.length); i++) {
         const reader = readers[Math.floor(this.rng() * readers.length)];
-        const strength = 0.3 + this.rng() * 0.3; // 0.3 to 0.6
-
-        this.createEdge(creator, reader, 'print', strength);
+        if (reader !== creator) {
+          const strength = 0.3 + this.rng() * 0.3; // 0.3 to 0.6
+          this.createEdge(creator, reader, 'print', strength);
+        }
       }
     });
   }
 
   /**
    * Create broadcast connections (parasocial relationships)
+   *
+   * FOLLOWER ACCUMULATION MECHANISM: BROADCAST ERA
+   *
+   * In the broadcast era, follower accumulation is based on:
+   * 1. BROADCAST ACCESS (scarce resource - technology gatekeeping)
+   * 2. AURA (TV charisma, 60% transmission through mediation)
+   * 3. CONTENT QUALITY (compelling programming attracts viewers)
+   *
+   * This models the complementary schismogenesis of mass media:
+   * - Few broadcasters (access to technology)
+   * - Many viewers (passive reception)
+   * - Aura transmits better via broadcast (60%) than print (30%) due to
+   *   voice, movement, and visual presence
+   *
+   * Nodes with (broadcast_access × aura × content_quality) accumulate massive followers.
    */
   createBroadcastConnections() {
-    const broadcasters = this.nodes.filter((n) => n.role === 'broadcaster');
+    // Filter for nodes with broadcast access (potential broadcasters)
+    const potential_broadcasters = this.nodes.filter((n) => n.has_broadcast_access);
     const viewers = this.nodes.filter((n) => n.has_broadcast_access);
 
-    broadcasters.forEach((broadcaster) => {
-      // Each broadcaster reaches many viewers (one-to-many)
-      const reach_percentage = 0.3 + this.rng() * 0.5; // 30-80% of viewers
+    if (potential_broadcasters.length === 0 || viewers.length === 0) return;
+
+    // Calculate "broadcast appeal" for each potential broadcaster
+    potential_broadcasters.forEach((broadcaster) => {
+      const aura_component = broadcaster.aura_strength * this.config.aura_transmission; // 60% for broadcast
+      const appeal = (broadcaster.content_quality * 0.4) + (aura_component * 0.6); // Aura matters more in broadcast
+
+      // Broadcast reach is MASSIVE (one-to-many)
+      // Base: 30% of viewers, Bonus: up to 50% more with high appeal
+      const base_percentage = 0.3;
+      const max_bonus = 0.5;
+      const reach_percentage = base_percentage + (appeal * max_bonus);
       const reach_count = Math.floor(viewers.length * reach_percentage);
 
       for (let i = 0; i < reach_count; i++) {
         const viewer = viewers[Math.floor(this.rng() * viewers.length)];
-        const strength = 0.4 + this.rng() * 0.4; // 0.4 to 0.8
-
-        this.createEdge(broadcaster, viewer, 'broadcast', strength);
+        if (viewer !== broadcaster) {
+          const strength = 0.4 + this.rng() * 0.4; // 0.4 to 0.8
+          this.createEdge(broadcaster, viewer, 'broadcast', strength);
+        }
       }
     });
   }
 
   /**
    * Create internet connections (many-to-many, topic-based)
+   *
+   * FOLLOWER ACCUMULATION MECHANISM: INTERNET ERA
+   *
+   * In the internet era, follower accumulation is based on:
+   * 1. TOPIC CLUSTERING (Reddit, forums, early social networks)
+   * 2. DIGITAL AURA (75% transmission - good lighting, editing, writing)
+   * 3. CONTENT QUALITY (helpful posts, interesting threads)
+   *
+   * This models the "Web 2.0" transition:
+   * - Anyone can publish (democratization of media)
+   * - Communities form around shared interests (topic-based)
+   * - But aura still matters - some voices rise above the noise
+   * - NOT yet algorithm-driven (chronological feeds, not engagement-optimized)
+   *
+   * Nodes with high (digital_aura × content_quality) become "community leaders"
+   * in their topic areas, accumulating more followers within niches.
    */
   createInternetConnections() {
     const users = this.nodes.filter((n) => n.has_internet_access);
+
+    if (users.length === 0) return;
 
     // Simulate topic-based clustering
     const num_topics = Math.floor(users.length / 100) + 5;
@@ -570,7 +654,16 @@ export class NetworkGenerator {
     // Create connections within topics
     topics.forEach((topic_users) => {
       topic_users.forEach((user) => {
-        const connections = Math.floor(this.rng() * 50) + 10; // 10-60 connections
+        // Internet appeal = digital_aura (75%) × content_quality
+        const digital_aura_component = user.digital_aura; // 75% real + 50% performed
+        const appeal = (digital_aura_component * 0.5) + (user.content_quality * 0.5);
+
+        // Connections scale with appeal
+        // Base: 10 connections, Max: 100 connections at max appeal
+        const base_connections = 10;
+        const max_bonus = 90;
+        const connections = Math.floor(base_connections + (appeal * max_bonus));
+
         for (let i = 0; i < Math.min(connections, topic_users.length); i++) {
           const target =
             topic_users[Math.floor(this.rng() * topic_users.length)];
@@ -585,25 +678,64 @@ export class NetworkGenerator {
 
   /**
    * Create algorithmic connections (engagement-optimized)
+   *
+   * FOLLOWER ACCUMULATION MECHANISM: ALGORITHMIC ERA
+   *
+   * In the algorithmic era, follower accumulation is based on:
+   * 1. INFLAMMATORY CONTENT (engagement optimization - rage drives clicks)
+   * 2. DIGITAL AURA (75% real + 50% performed = platform capitalism)
+   * 3. POSTING FREQUENCY (algorithmic reward for constant activity)
+   *
+   * This implements the Orality project's critique of "aura commodification":
+   * - Real aura transmits at 75% (the "25% gap")
+   * - But ANYONE can perform aura at 50% effectiveness (democratized fraud)
+   * - Combined with inflammatory content = toxic amplification
+   * - Platform extracts 90% of revenue (surveillance capitalism)
+   *
+   * The algorithm doesn't care about truth, quality, or social good.
+   * It optimizes for engagement = time on platform = ad revenue.
+   *
+   * Nodes with high (inflammatory_level × digital_aura × posting_frequency)
+   * accumulate massive parasocial followers but experience burnout.
    */
   createAlgorithmicConnections() {
     const users = this.nodes.filter((n) => n.has_smartphone);
 
-    users.forEach((user) => {
-      // Algorithm optimizes for engagement (inflammatory content)
-      const connections = Math.floor(this.rng() * 500) + 100; // 100-600 connections
+    if (users.length === 0) return;
 
+    // Each user potentially creates content
+    users.forEach((user) => {
+      // Calculate "algorithmic appeal" for this user
+      // Appeal = (inflammatory_level × 0.5) + (digital_aura × 0.3) + (posting_frequency × 0.2)
+      const digital_aura_component = user.digital_aura; // Getter: real aura (75%) + performed (50%)
+      const appeal =
+        (user.inflammatory_level * 0.5) +
+        (digital_aura_component * 0.3) +
+        (user.posting_frequency * 0.2);
+
+      // Reach scales EXPONENTIALLY with appeal (algorithmic amplification)
+      // Base: 100 connections, Max: 1000 connections at max appeal
+      const base_connections = 100;
+      const max_bonus = 900;
+      const connections = Math.floor(base_connections + (appeal * max_bonus));
+
+      // Actually make the connections
       for (let i = 0; i < Math.min(connections, users.length); i++) {
         const target = users[Math.floor(this.rng() * users.length)];
         if (target !== user) {
-          // Higher strength for inflammatory content
-          const is_inflammatory = this.rng() < this.config.inflammatory_content_ratio;
+          // Connection strength based on inflammatory content
+          const is_inflammatory = user.inflammatory_level > 0.6;
           const strength = is_inflammatory
             ? 0.6 + this.rng() * 0.4 // 0.6 to 1.0
             : this.rng() * 0.5; // 0 to 0.5
 
           this.createEdge(user, target, 'algorithmic', strength);
         }
+      }
+
+      // If user is performing aura, accumulate performance fatigue
+      if (user.performing_aura) {
+        user.performance_fatigue += 0.01 * connections; // Fatigue scales with followers
       }
     });
   }
