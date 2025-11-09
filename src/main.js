@@ -31,6 +31,13 @@ class App {
     this.statsToggle = document.getElementById('stats-toggle');
     this.statsContent = document.getElementById('stats-content');
 
+    // Connection type toggles
+    this.toggleEmbodied = document.getElementById('toggle-embodied');
+    this.togglePrint = document.getElementById('toggle-print');
+    this.toggleBroadcast = document.getElementById('toggle-broadcast');
+    this.toggleInternet = document.getElementById('toggle-internet');
+    this.toggleAlgorithmic = document.getElementById('toggle-algorithmic');
+
     // Stats elements
     this.fpsEl = document.getElementById('fps');
     this.nodesEl = document.getElementById('nodes');
@@ -57,6 +64,13 @@ class App {
     this.themeToggle.addEventListener('click', () => this.toggleTheme());
     this.sidebarToggleBtn.addEventListener('click', () => this.toggleControlPanel());
     this.statsToggle.addEventListener('click', () => this.toggleStatsPanel());
+
+    // Connection type toggles
+    this.toggleEmbodied.addEventListener('change', () => this.updateEdgeVisibility());
+    this.togglePrint.addEventListener('change', () => this.updateEdgeVisibility());
+    this.toggleBroadcast.addEventListener('change', () => this.updateEdgeVisibility());
+    this.toggleInternet.addEventListener('change', () => this.updateEdgeVisibility());
+    this.toggleAlgorithmic.addEventListener('change', () => this.updateEdgeVisibility());
   }
 
   /**
@@ -248,6 +262,23 @@ class App {
         this.fpsEl.textContent = this.visualizer.getFPS();
       }
     }, 500);
+  }
+
+  /**
+   * Update edge visibility based on toggle states
+   */
+  updateEdgeVisibility() {
+    if (!this.visualizer) return;
+
+    const visibilityState = {
+      embodied: this.toggleEmbodied.checked,
+      print: this.togglePrint.checked,
+      broadcast: this.toggleBroadcast.checked,
+      internet: this.toggleInternet.checked,
+      algorithmic: this.toggleAlgorithmic.checked
+    };
+
+    this.visualizer.setEdgeVisibility(visibilityState);
   }
 }
 

@@ -592,6 +592,18 @@ export class Visualizer {
       sprite.scale.set(base_scale, base_scale, 1);
     });
   }
+
+  /**
+   * Set visibility for edge types
+   * @param {Object} visibilityState - { embodied: bool, print: bool, broadcast: bool, internet: bool, algorithmic: bool }
+   */
+  setEdgeVisibility(visibilityState) {
+    this.edge_lines.forEach((line) => {
+      const edge = line.userData.edge;
+      const isVisible = visibilityState[edge.medium];
+      line.visible = isVisible;
+    });
+  }
 }
 
 export default Visualizer;

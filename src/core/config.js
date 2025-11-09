@@ -299,28 +299,28 @@ export function getEdgeRepresentation(edge, camera_distance, config) {
 export const FORCE_LAYOUT_CONFIG = {
   // Force strengths by connection medium
   attraction_forces: {
-    embodied: 0.5,      // Strong pull - tight clusters (reduced for larger networks)
-    print: 0.25,        // Medium pull (reduced)
-    broadcast: 0.15,    // Weak pull - hub-and-spoke (reduced)
-    internet: 0.2,      // Medium pull (only 25% active, or if also embodied) (reduced)
+    embodied: 0.4,      // Strong pull - tight clusters (further reduced)
+    print: 0.2,         // Medium pull (further reduced)
+    broadcast: 0.1,     // Weak pull - hub-and-spoke (further reduced)
+    internet: 0.15,     // Medium pull (only 25% active, or if also embodied) (further reduced)
     algorithmic: 0.0    // NO pull - doesn't affect spatial layout
   },
 
   // Repulsion between all nodes (prevents overlap)
-  repulsion_strength: 1200,  // Very strong repulsion for large networks
-  repulsion_distance: 300,   // Very large repulsion range
+  repulsion_strength: 2000,  // Extremely strong repulsion for crowded later eras
+  repulsion_distance: 500,   // Extremely large repulsion range
 
   // Layout parameters
   iterations: 300,           // Number of simulation steps
   cooling_factor: 0.95,      // Velocity damping per iteration
-  initial_temperature: 300,  // Very high initial movement energy
+  initial_temperature: 500,  // Extremely high initial movement energy
 
   // Distance threshold for edge rendering
   edge_distance_threshold: 150,  // < threshold = straight, >= threshold = curved
 
   // Plane boundaries (optional)
   use_boundaries: false,
-  boundary_size: 1000
+  boundary_size: 2000        // Increased boundary size for larger spread
 };
 
 export default ERA_CONFIGS;

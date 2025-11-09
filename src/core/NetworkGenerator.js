@@ -114,8 +114,8 @@ export class NetworkGenerator {
   initializePositions() {
     console.log('Initializing node positions...');
 
-    // Very large spread for larger networks (was * 10, then * 40, now * 60)
-    const spread = Math.sqrt(this.nodes.length) * 60;
+    // Extremely large spread for larger networks (was * 10, then * 40, then * 60, now * 100)
+    const spread = Math.sqrt(this.nodes.length) * 100;
     this.nodes.forEach((node) => {
       node.position.x = (this.rng() - 0.5) * spread;
       node.position.y = (this.rng() - 0.5) * spread;
