@@ -1115,6 +1115,23 @@ export class NetworkGenerator {
    * Generate content that flows through the network
    * This drives cognitive load and emotional responses
    * Influencers produce 90% inflammatory content
+   *
+   * PLATFORM EXTRACTION MECHANICS (Algorithmic Era):
+   *
+   * In the algorithmic era, content generation creates revenue through engagement.
+   * The platform extracts 90% of this revenue, giving creators only 10%.
+   * This models surveillance capitalism's extractive dynamics.
+   *
+   * Revenue calculation:
+   * - Base revenue = follower_count × engagement_rate × content_frequency
+   * - Platform takes 90% (extraction_rate from config)
+   * - Creator gets 10% (often insufficient for living wage = precarity)
+   *
+   * This creates a toxic loop:
+   * 1. Need money → post more inflammatory content
+   * 2. Inflammatory content → more engagement → more fatigue
+   * 3. Fatigue → burnout → follower loss → need more money
+   * 4. Cycle repeats until pathological adaptation or exit
    */
   generateContent() {
     // Content generation rate depends on era
@@ -1124,7 +1141,7 @@ export class NetworkGenerator {
     for (let i = 0; i < num_contents; i++) {
       // Pick a random creator or broadcaster
       const creators = this.nodes.filter(
-        (n) => n.role === 'creator' || n.role === 'broadcaster'
+        (n) => n.role === 'creator' || n.role === 'broadcaster' || n.role === 'influencer'
       );
 
       if (creators.length === 0) continue;
@@ -1162,6 +1179,37 @@ export class NetworkGenerator {
           if (target_node && target_node.information_buffer) {
             target_node.information_buffer.push(content);
           }
+        }
+      }
+
+      // PLATFORM EXTRACTION (Algorithmic era only)
+      if (this.era === 'algorithmic_era' && creator.follower_count > 0) {
+        // Calculate engagement-based revenue
+        // More followers + inflammatory content = more engagement = more revenue
+        const engagement_multiplier = is_inflammatory ? 2.0 : 1.0;
+        const base_revenue_per_follower = 0.001; // $0.001 per follower per post (CPM model)
+        const gross_revenue = creator.follower_count * base_revenue_per_follower * engagement_multiplier;
+
+        // Platform extraction (90% to platform, 10% to creator)
+        const platform_cut = gross_revenue * (this.config.platform_extraction_rate || 0.9);
+        const creator_cut = gross_revenue - platform_cut;
+
+        // Track revenue
+        creator.platform_revenue_generated += gross_revenue;
+        creator.personal_revenue += creator_cut;
+
+        // Check if creator can escape financial precarity
+        // Assume $30k/year minimum = ~$2.5k/month for viability
+        const monthly_revenue_estimate = creator.personal_revenue * 30; // Rough estimate
+        if (monthly_revenue_estimate > 2500) {
+          creator.financial_precarity = false;
+        } else {
+          creator.financial_precarity = true;
+        }
+
+        // Performance fatigue accumulates with posting frequency
+        if (creator.performing_aura) {
+          creator.performance_fatigue += 0.005; // Small increment per post
         }
       }
     }
