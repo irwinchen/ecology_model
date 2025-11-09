@@ -586,13 +586,27 @@ export class NetworkGenerator {
    * Nodes with (broadcast_access × aura × content_quality) accumulate massive followers.
    */
   createBroadcastConnections() {
-    // Filter for nodes with broadcast access (potential broadcasters)
-    const potential_broadcasters = this.nodes.filter((n) => n.has_broadcast_access);
-    const viewers = this.nodes.filter((n) => n.has_broadcast_access);
+    // Filter for nodes with broadcast access
+    const broadcast_users = this.nodes.filter((n) => n.has_broadcast_access);
 
-    if (potential_broadcasters.length === 0 || viewers.length === 0) return;
+    if (broadcast_users.length === 0) return;
 
-    // Calculate "broadcast appeal" for each potential broadcaster
+    // Only top 1% with highest (aura × content_quality) become broadcasters
+    // This models scarcity of broadcast access (expensive equipment, licenses)
+    const broadcaster_candidates = broadcast_users
+      .map(n => ({
+        node: n,
+        appeal: (n.aura_strength * 0.6) + (n.content_quality * 0.4)
+      }))
+      .sort((a, b) => b.appeal - a.appeal);
+
+    const broadcaster_count = Math.max(1, Math.floor(broadcast_users.length * 0.01));
+    const potential_broadcasters = broadcaster_candidates.slice(0, broadcaster_count).map(c => c.node);
+    const viewers = broadcast_users; // Everyone with broadcast access can watch
+
+    if (potential_broadcasters.length === 0) return;
+
+    // Calculate "broadcast appeal" for each broadcaster
     potential_broadcasters.forEach((broadcaster) => {
       const aura_component = broadcaster.aura_strength * this.config.aura_transmission; // 60% for broadcast
       const appeal = (broadcaster.content_quality * 0.4) + (aura_component * 0.6); // Aura matters more in broadcast
