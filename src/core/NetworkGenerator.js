@@ -494,7 +494,7 @@ export class NetworkGenerator {
 
   /**
    * Identify influencers based on follower count
-   * Roughly 1 influencer per 10,000 people
+   * Roughly 1 influencer per 1,000 people (more realistic for platform dynamics)
    */
   identifyInfluencers() {
     console.log('Identifying influencers...');
@@ -518,8 +518,8 @@ export class NetworkGenerator {
       node.follower_count = followerCounts.get(node.id) || 0;
     });
 
-    // Determine number of influencers (1 per 10,000 people, minimum 1)
-    const influencer_count = Math.max(1, Math.floor(this.nodes.length / 10000));
+    // Determine number of influencers (1 per 1,000 people, minimum 1)
+    const influencer_count = Math.max(1, Math.floor(this.nodes.length / 1000));
 
     // Sort nodes by follower count
     const nodesByFollowers = [...this.nodes].sort((a, b) => b.follower_count - a.follower_count);
