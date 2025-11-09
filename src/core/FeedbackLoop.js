@@ -86,6 +86,9 @@ export class FeedbackLoop {
 
   /**
    * Execute the feedback loop
+   *
+   * Runs appropriate feedback dynamics based on loop type and era.
+   * In algorithmic era, also checks for performance fatigue double bind.
    */
   execute() {
     if (!this.active) return;
@@ -95,6 +98,11 @@ export class FeedbackLoop {
     } else if (this.type === 'negative') {
       this.executeNegativeFeedback();
     }
+
+    // Always check for performance fatigue double bind in algorithmic era
+    // This runs independently of positive/negative feedback classification
+    // because it's a UNIQUE trap of platform capitalism
+    this.executePerformanceFatigueDoubleBind();
   }
 
   /**
@@ -271,6 +279,11 @@ export class FeedbackLoop {
    *    - Models: Learning coping skills, building resilience
    *    - This is Bateson's "deutero-learning" - learning to regulate
    *
+   * 4. PERFORMANCE FATIGUE REDUCTION (Algorithmic era)
+   *    - If node is NOT performing aura, fatigue slowly recovers
+   *    - Models: Taking breaks, stepping back from content creation
+   *    - But recovery is SLOW compared to accumulation rate
+   *
    * WHY ALGORITHMIC ERA BREAKS THIS:
    * - Infinite scroll removes natural stopping points
    * - Engagement optimization fights against disengagement
@@ -297,6 +310,98 @@ export class FeedbackLoop {
     // Support regulatory capacity (deutero-learning: learning to regulate)
     this.target.regulatory_capacity += this.strength * 0.01;
     this.target.regulatory_capacity = Math.min(1, this.target.regulatory_capacity);
+
+    // Performance fatigue recovery (SLOW - only when not performing)
+    if (this.target.performance_fatigue !== undefined && !this.target.performing_aura) {
+      this.target.performance_fatigue -= this.target.performance_fatigue * this.strength * 0.02;
+      this.target.performance_fatigue = Math.max(0, this.target.performance_fatigue);
+    }
+  }
+
+  /**
+   * Execute performance fatigue double bind (algorithmic era)
+   *
+   * THEORETICAL FOUNDATION: DOUBLE BIND THROUGH PLATFORM DEPENDENCY
+   *
+   * This implements Bateson's "double bind" theory ("Toward a Theory of Schizophrenia", 1956)
+   * applied to the creator economy. The double bind has these characteristics:
+   *
+   * 1. PRIMARY NEGATIVE INJUNCTION
+   *    "You must perform aura to earn money and survive"
+   *    - Platform economics require constant content creation
+   *    - Revenue depends on follower engagement
+   *    - Must maintain performance even when exhausted
+   *
+   * 2. SECONDARY NEGATIVE INJUNCTION (CONTRADICTORY)
+   *    "Performance causes fatigue which will destroy your ability to perform"
+   *    - Emotional labor accumulates as performance_fatigue
+   *    - Burnout risk increases with fatigue
+   *    - But stopping means losing income
+   *
+   * 3. TERTIARY NEGATIVE INJUNCTION
+   *    "You cannot escape the situation"
+   *    - Network effects lock you into the platform
+   *    - No viable alternative income sources
+   *    - Quitting means financial collapse
+   *
+   * THE TRAP:
+   * - Perform → accumulate fatigue → risk burnout → must perform more to compensate
+   * - Don't perform → lose followers → lose income → must perform to survive
+   * - Either choice leads to harm
+   * - Classic double bind: damned if you do, damned if you don't
+   *
+   * This models Arlie Hochschild's "emotional labor" (The Managed Heart, 1983)
+   * combined with platform capitalism's extractive dynamics. The result is
+   * pathological adaptation or burnout.
+   */
+  executePerformanceFatigueDoubleBind() {
+    // Only applies to algorithmic era with performance mechanics
+    if (this.medium !== 'algorithmic') return;
+    if (this.target.performance_fatigue === undefined) return;
+
+    // POSITIVE FEEDBACK: Financial precarity drives more performance
+    if (this.target.financial_precarity && !this.target.performing_aura) {
+      // Precarity forces resumption of performance
+      if (Math.random() < 0.1) { // 10% chance per update to restart
+        this.target.performing_aura = true;
+      }
+    }
+
+    // POSITIVE FEEDBACK: Performance accumulates fatigue
+    if (this.target.performing_aura) {
+      // Fatigue increases with follower count (more audience = more pressure)
+      const fatigue_rate = 0.001 * (1 + this.target.follower_count * 0.0001);
+      this.target.performance_fatigue += fatigue_rate * this.strength;
+    }
+
+    // BURNOUT CHECK: High fatigue can force exit
+    if (this.target.performance_fatigue > 0.8) {
+      // Burnout probability scales with fatigue
+      const burnout_probability = (this.target.performance_fatigue - 0.8) * 0.5;
+
+      if (Math.random() < burnout_probability * this.strength) {
+        // BURNOUT: Stop performing, lose half of parasocial followers
+        this.target.performing_aura = false;
+        this.target.parasocial_followers = Math.floor(this.target.parasocial_followers * 0.5);
+        this.target.follower_count = this.target.embodied_followers + this.target.parasocial_followers;
+
+        // Mark as pathological if this has happened multiple times
+        if (this.target.burnout_count === undefined) {
+          this.target.burnout_count = 0;
+        }
+        this.target.burnout_count++;
+
+        if (this.target.burnout_count >= 3) {
+          // Pathological adaptation after repeated burnouts
+          this.target.double_bind.pathological_adaptation = true;
+        }
+      }
+    }
+
+    // COGNITIVE LOAD: Performance creates ongoing cognitive burden
+    if (this.target.performing_aura) {
+      this.target.cognitive_load += this.target.follower_count * 0.00001 * this.strength;
+    }
   }
 
   /**
