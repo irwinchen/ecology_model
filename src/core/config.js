@@ -165,7 +165,7 @@ export const ERA_CONFIGS = {
 
     // Rendering optimization (CRITICAL for performance)
     use_top_edges_only: true, // Render only the strongest N edges (ignores sampling)
-    max_rendered_edges: 15000, // Render top 15k strongest edges
+    max_rendered_edges: 5000, // Reduced from 15k to prevent GPU overload (3.6M total edges)
     use_lod: true, // Use level-of-detail rendering
     lod_distance_near: 50, // Full detail within 50 units
     lod_distance_far: 200, // Point sprites beyond 200 units

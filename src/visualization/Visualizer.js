@@ -109,6 +109,18 @@ export class Visualizer {
     // Handle window resize
     window.addEventListener('resize', () => this.onWindowResize());
 
+    // Handle WebGL context loss/restore
+    this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
+      console.warn('WebGL context lost! Pausing rendering...');
+      this.stop();
+    }, false);
+
+    this.renderer.domElement.addEventListener('webglcontextrestored', () => {
+      console.log('WebGL context restored! Recreating scene...');
+      this.handleContextRestored();
+    }, false);
+
     // Create visualization
     this.createVisualization();
 
@@ -280,15 +292,49 @@ export class Visualizer {
     const maxEdges = this.config.max_rendered_edges || Infinity;
     let edgesToRender;
 
-    // Use top-N strongest edges approach for massive networks
+    // Use stratified sampling for massive networks (ensures all connection types are represented)
     if (this.config.use_top_edges_only) {
-      // Sort all edges by strength (descending)
-      const sortedEdges = [...this.network_data.edges].sort((a, b) => b.strength - a.strength);
+      // Group edges by medium type
+      const edgesByMedium = {
+        embodied: [],
+        print: [],
+        broadcast: [],
+        internet: [],
+        algorithmic: []
+      };
 
-      // Take only the top N strongest edges
-      edgesToRender = sortedEdges.slice(0, maxEdges);
+      this.network_data.edges.forEach(edge => {
+        if (edgesByMedium[edge.medium]) {
+          edgesByMedium[edge.medium].push(edge);
+        }
+      });
 
-      console.log(`Rendering top ${edgesToRender.length} strongest edges (out of ${this.network_data.edges.length} total)`);
+      // Calculate total edges
+      const totalEdges = this.network_data.edges.length;
+      edgesToRender = [];
+
+      console.log('Stratified edge sampling:');
+
+      // For each medium, sample proportionally based on its share of total edges
+      for (const [medium, edges] of Object.entries(edgesByMedium)) {
+        if (edges.length === 0) continue;
+
+        // Calculate this medium's proportion of total edges
+        const proportion = edges.length / totalEdges;
+
+        // Allocate render budget proportionally
+        const allocatedCount = Math.round(maxEdges * proportion);
+
+        // Sort edges in this medium by strength (descending) and take top N
+        const sortedEdges = edges.sort((a, b) => b.strength - a.strength);
+        const selectedEdges = sortedEdges.slice(0, allocatedCount);
+
+        edgesToRender.push(...selectedEdges);
+
+        console.log(`  ${medium}: ${edges.length} total → rendering ${selectedEdges.length} strongest (${(proportion * 100).toFixed(1)}%)`);
+      }
+
+      console.log(`Total: ${edgesToRender.length} edges rendered from ${totalEdges} total`);
     } else {
       // Use traditional sampling approach
       edgesToRender = this.network_data.edges.filter((edge) =>
@@ -534,6 +580,31 @@ export class Visualizer {
    */
   getFPS() {
     return Math.round(this.fps);
+  }
+
+  /**
+   * Handle WebGL context restoration
+   */
+  handleContextRestored() {
+    // Clear existing visualization objects
+    this.node_meshes.forEach((sprite) => {
+      this.scene.remove(sprite);
+    });
+    this.edge_lines.forEach((line) => {
+      this.scene.remove(line);
+    });
+
+    this.node_meshes.clear();
+    this.edge_lines = [];
+
+    // Recreate visualization
+    this.createVisualization();
+
+    // Render one frame to compile shaders
+    this.renderer.render(this.scene, this.camera);
+
+    // Restart animation
+    this.start();
   }
 
   /**
