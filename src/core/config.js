@@ -1,9 +1,117 @@
 /**
  * config.js
  *
- * Configuration presets for different communication eras.
- * Hybrid strategy optimized for maximum accessibility (three.js → Unity WebGL).
+ * THEORETICAL FOUNDATION: MEDIA ECOLOGY AND THE EVOLUTION OF COMMUNICATION
+ *
+ * This configuration file encodes the core thesis of the Orality project:
+ * that different communication technologies create fundamentally different
+ * "ecologies of mind" (Bateson), with measurable psychological consequences.
+ *
+ * THEORETICAL FRAMEWORKS:
+ *
+ * 1. WALTER ONG - "Orality and Literacy" (1982)
+ *    - Primary orality: Cultures with no knowledge of writing
+ *      * Aggregative, redundant, conservative, homeostatic
+ *      * Empathetic, participatory, situational
+ *    - Secondary orality: Electronic media recreate oral dynamics
+ *      * Broadcast, internet create "global village" (McLuhan)
+ *      * But lack embodied grounding of primary orality
+ *
+ * 2. MARSHALL McLUHAN - "Understanding Media" (1964)
+ *    - "The medium is the message" - technology shapes consciousness
+ *    - Media as extensions of human faculties
+ *    - Hot media (high definition) vs Cool media (low definition, high participation)
+ *    - Print: Hot, linear, individualistic
+ *    - Television: Cool, participatory, tribal
+ *
+ * 3. ERIC HAVELOCK - "Preface to Plato" (1963)
+ *    - Literacy creates analytical, abstract thinking
+ *    - Orality privileges memory, rhythm, performance
+ *    - The transition fundamentally reorganizes consciousness
+ *
+ * 4. ELIZABETH EISENSTEIN - "The Printing Press as an Agent of Change" (1979)
+ *    - Print enables: Standardization, fixity, dissemination
+ *    - Creates modern individualism, scientific method, nationalism
+ *    - But fragments oral community structures
+ *
+ * ERA PROGRESSION IN THIS MODEL:
+ *
+ * Each era is NOT a replacement but a LAYERING. Later eras contain earlier modes
+ * as "oral residue" (Ong). The parameters encode:
+ *
+ * - Population scale (villages → cities → global)
+ * - Literacy rates (0% → 98%)
+ * - Technology access (embodied → print → broadcast → internet → algorithmic)
+ * - Information flow characteristics (slow, grounded → fast, decontextualized)
+ * - Inflammatory content ratios (natural agonism → optimized outrage)
+ * - Feedback loop dynamics (negative → positive dominance)
+ *
+ * WHY THESE SPECIFIC PARAMETERS?
+ *
+ * Each parameter is grounded in historical research and theoretical principles:
+ * - Literacy rates: Historical estimates from UNESCO, Eisenstein
+ * - Inflammatory content: Models "engagement optimization" in algorithmic era
+ * - Schismogenesis rates: Represents tribal polarization in social media
+ * - Reach multipliers: Each simulated node represents multiple actual people
+ *
+ * THE CORE ARGUMENT:
+ *
+ * Human regulatory capacity (homeostasis, cognitive limits) evolved for oral
+ * communication. Each technological transition STRAINS these mechanisms further,
+ * until the algorithmic era OVERWHELMS them entirely.
+ *
+ * This is not technological determinism - humans adapt! But adaptation has costs.
+ * The model quantifies those costs through metrics like:
+ * - Percent within homeostatic range
+ * - Percent in double bind stress
+ * - Tribal polarization levels
+ * - Cognitive overload rates
+ *
+ * Configuration as argument: The numbers tell the story of what we've lost and
+ * gained in the transition from face-to-face village life to algorithmically-
+ * mediated global communication.
  */
+
+/**
+ * AURA TRANSMISSION RATES ACROSS MEDIA
+ *
+ * THEORETICAL FOUNDATION: Benjamin's "Aura" + Digital Mediation
+ *
+ * How much of embodied aura transmits through different media:
+ * - 1.0 (100%): Face-to-face, full embodied presence
+ * - 0.75 (75%): Digital media (the "25% better online" effect)
+ * - 0.60 (60%): Broadcast (TV charisma, mediated but dynamic)
+ * - 0.30 (30%): Print (voice on page, heavily mediated)
+ *
+ * This explains:
+ * - Why meeting influencers IRL often disappoints (25% gap)
+ * - Why some people "work" on camera better than others
+ * - Why we still value in-person conferences despite Zoom
+ */
+export const AURA_TRANSMISSION = {
+  oral: 1.0,        // 100% - full embodied presence (Benjamin's "aura")
+  print: 0.3,       // 30% - "voice on page" (heavily mediated)
+  broadcast: 0.6,   // 60% - TV charisma (mediated but dynamic)
+  internet: 0.75,   // 75% - good lighting/editing helps
+  algorithmic: 0.75 // 75% - same as internet, but AMPLIFIED + EXTRACTED
+};
+
+/**
+ * FOLLOWER COUNT THRESHOLDS FOR ROLE CLASSIFICATION
+ *
+ * THEORETICAL FOUNDATION: Dunbar's number + cognitive limits
+ *
+ * Roles emerge from follower accumulation:
+ * - Consumer (0-50): Local social circle
+ * - Creator (50-500): Beyond immediate circle, manageable feedback
+ * - Broadcaster (500-10k): Beyond Dunbar limit, parasocial dominant
+ * - Influencer (10k+): Algorithmic amplification, platform-dependent
+ */
+export const ROLE_THRESHOLDS = {
+  creator: 50,      // Beyond family/friends
+  broadcaster: 500, // Approaching Dunbar limit
+  influencer: 10000 // Critical mass for platform economics
+};
 
 export const ERA_CONFIGS = {
   oral_culture: {
@@ -15,6 +123,9 @@ export const ERA_CONFIGS = {
     internet_access_rate: 0,
     smartphone_rate: 0,
     inflammatory_content_ratio: 0.1, // Natural agonism
+
+    // Aura fully works in oral culture
+    aura_transmission: AURA_TRANSMISSION.oral,
 
     // Guaranteed minimums (not needed for oral - everyone is a creator)
     min_creators: 0,
@@ -37,6 +148,9 @@ export const ERA_CONFIGS = {
     internet_access_rate: 0,
     smartphone_rate: 0,
     inflammatory_content_ratio: 0.15,
+
+    // Aura partially captured in print (voice on page)
+    aura_transmission: AURA_TRANSMISSION.print,
 
     // Guaranteed minimums for rare roles
     min_creators: 8, // Ensure at least 8 print creators (authors, publishers)
@@ -61,6 +175,9 @@ export const ERA_CONFIGS = {
     smartphone_rate: 0,
     inflammatory_content_ratio: 0.25, // Pamphlets, yellow journalism
 
+    // Aura still limited by print medium
+    aura_transmission: AURA_TRANSMISSION.print,
+
     // Guaranteed minimums
     min_creators: 20, // More creators in mass print era
 
@@ -81,6 +198,9 @@ export const ERA_CONFIGS = {
     smartphone_rate: 0,
     institutional_trust: 0.65,
     inflammatory_content_ratio: 0.3,
+
+    // Aura works better through broadcast (TV charisma)
+    aura_transmission: AURA_TRANSMISSION.broadcast,
 
     // Guaranteed minimums
     min_broadcasters: 12, // CRITICAL: ensure we have actual broadcasters
@@ -105,6 +225,9 @@ export const ERA_CONFIGS = {
     institutional_trust: 0.5,
     inflammatory_content_ratio: 0.4,
 
+    // Aura transmits well through internet (75%)
+    aura_transmission: AURA_TRANSMISSION.internet,
+
     // Guaranteed minimums
     min_creators: 50, // More online creators
     min_broadcasters: 10,
@@ -128,6 +251,9 @@ export const ERA_CONFIGS = {
     institutional_trust: 0.3,
     inflammatory_content_ratio: 0.6,
     algorithm_engagement_weight: 0.5,
+
+    // Aura still transmits but competes with engagement metrics
+    aura_transmission: AURA_TRANSMISSION.internet,
 
     // Guaranteed minimums
     min_creators: 100,
@@ -159,6 +285,13 @@ export const ERA_CONFIGS = {
     institutional_trust: 0.2,
     inflammatory_content_ratio: 0.8, // Algorithm selects for it
     algorithm_engagement_weight: 0.9, // Maximum optimization
+
+    // Aura commodified: 75% transmission but must compete with inflammatory content
+    // Can be performed (filters, editing, persona management)
+    // Platform extracts most value
+    aura_transmission: AURA_TRANSMISSION.algorithmic,
+    aura_performance_enabled: true, // Anyone can perform aura (economic necessity)
+    platform_extraction_rate: 0.9,  // Platform keeps 90% of revenue
 
     // Guaranteed minimums
     min_creators: 200,
@@ -295,15 +428,61 @@ export function getEdgeRepresentation(edge, camera_distance, config) {
 
 /**
  * Force-directed layout configuration
+ *
+ * THEORETICAL GROUNDING: SPATIAL METAPHOR FOR SOCIAL TOPOLOGY
+ *
+ * These attraction forces encode a fundamental argument about the nature of
+ * different communication media:
+ *
+ * 1. EMBODIED (0.4): Strongest pull
+ *    - Face-to-face relationships create ACTUAL social gravity
+ *    - Spatial proximity in visualization = social affinity in reality
+ *    - This is the baseline for all human sociality (Dunbar)
+ *
+ * 2. PRINT (0.2): Medium pull
+ *    - Shared literacy creates interpretive communities (Fish)
+ *    - But it's mediated, asynchronous, lacks embodied feedback
+ *    - Creates "imagined communities" (Anderson) weaker than villages
+ *
+ * 3. BROADCAST (0.1): Weak pull, asymmetric
+ *    - Parasocial relationships FEEL meaningful but lack reciprocity
+ *    - Viewers cluster around broadcaster (hub-and-spoke)
+ *    - No mutual pull between viewers
+ *
+ * 4. INTERNET (0.15): Conditional pull
+ *    - Only creates clustering if grounded in embodied relationships
+ *    - Otherwise 75% have NO spatial pull (see NetworkGenerator)
+ *    - Models: Online communities that meet IRL vs pure digital connections
+ *
+ * 5. ALGORITHMIC (0.0): ZERO pull
+ *    - Engagement-optimized connections don't create social coherence
+ *    - You can have 10,000 "followers" and feel utterly alone
+ *    - The algorithm shows you what increases engagement, not what builds community
+ *    - Hence: No spatial pull, no clustering, no social gravity
+ *
+ * WHY THIS MATTERS:
+ *
+ * The visualization REVEALS the actual social topology hidden beneath the
+ * inflated metrics of digital "connection." When you run the model:
+ *
+ * - Oral culture: Tight clusters (villages)
+ * - Print era: Clusters with some dispersion
+ * - Broadcast era: Stars (broadcasters with viewer constellations)
+ * - Internet era: Dispersed with some clustering
+ * - Algorithmic era: Maximum dispersion (despite maximum "connections")
+ *
+ * More "connections" ≠ more social coherence. Often the opposite.
+ * This is McLuhan's "the medium is the message" made computational.
  */
 export const FORCE_LAYOUT_CONFIG = {
   // Force strengths by connection medium
+  // These values encode theoretical claims about media's social cohesion capacity
   attraction_forces: {
-    embodied: 0.4,      // Strong pull - tight clusters (further reduced)
-    print: 0.2,         // Medium pull (further reduced)
-    broadcast: 0.1,     // Weak pull - hub-and-spoke (further reduced)
-    internet: 0.15,     // Medium pull (only 25% active, or if also embodied) (further reduced)
-    algorithmic: 0.0    // NO pull - doesn't affect spatial layout
+    embodied: 0.4,      // Strong pull - tight clusters (face-to-face creates real bonds)
+    print: 0.2,         // Medium pull (shared literacy creates community, but mediated)
+    broadcast: 0.1,     // Weak pull - hub-and-spoke (parasocial, asymmetric)
+    internet: 0.15,     // Medium pull (only 25% active, or if grounded in embodied)
+    algorithmic: 0.0    // NO pull - engagement ≠ social gravity
   },
 
   // Repulsion between all nodes (prevents overlap)
