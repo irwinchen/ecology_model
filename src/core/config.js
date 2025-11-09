@@ -307,13 +307,13 @@ export const FORCE_LAYOUT_CONFIG = {
   },
 
   // Repulsion between all nodes (prevents overlap)
-  repulsion_strength: 800,   // Strong repulsion for 8k nodes
-  repulsion_distance: 200,   // Large repulsion range
+  repulsion_strength: 1200,  // Very strong repulsion for large networks
+  repulsion_distance: 300,   // Very large repulsion range
 
   // Layout parameters
   iterations: 300,           // Number of simulation steps
   cooling_factor: 0.95,      // Velocity damping per iteration
-  initial_temperature: 200,  // High initial movement energy
+  initial_temperature: 300,  // Very high initial movement energy
 
   // Distance threshold for edge rendering
   edge_distance_threshold: 150,  // < threshold = straight, >= threshold = curved

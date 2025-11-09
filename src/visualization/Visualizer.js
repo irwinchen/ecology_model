@@ -215,10 +215,17 @@ export class Visualizer {
 
   /**
    * Create flat 2D circle nodes using sprites
+   * Node size scales with follower count (influence)
    */
   createNodes() {
     this.network_data.nodes.forEach((node) => {
       const color = this.getNodeColor(node);
+
+      // Calculate size based on follower count (logarithmic scale)
+      // Regular consumers: 2.0, Creators: 3-5, Influencers: 6-9
+      const base_size = 2.0;
+      const follower_scale = 1 + Math.log10((node.follower_count || 0) + 1) * 0.8;
+      const node_size = base_size * follower_scale;
 
       // Create circle texture
       const canvas = document.createElement('canvas');
@@ -246,9 +253,9 @@ export class Visualizer {
       });
 
       const sprite = new THREE.Sprite(material);
-      sprite.scale.set(2.5, 2.5, 1); // Reduced size for less crowding
+      sprite.scale.set(node_size, node_size, 1);
       sprite.position.set(node.position.x, node.position.y, node.position.z);
-      sprite.userData = { node: node, base_scale: 2.5 };
+      sprite.userData = { node: node, base_scale: node_size };
 
       this.scene.add(sprite);
       this.node_meshes.set(node.id, sprite);
