@@ -100,49 +100,91 @@
       </main>
 
       <!-- Stats Panel -->
-      <aside id="stats" class="panel stats-panel" style="display: none">
+      <aside id="stats" class="panel stats-panel">
         <div class="panel-header">
           <h3 class="panel-title">Metrics</h3>
           <button id="stats-toggle" class="panel-toggle" aria-label="Toggle stats panel">−</button>
         </div>
         <div class="stats-grid" id="stats-content">
-          <div class="stat-row">
+          <div class="stat-row" title="Frames per second - rendering performance">
             <span class="stat-label">FPS</span>
             <span class="stat-value font-mono" id="fps">60</span>
           </div>
-          <div class="stat-row">
+          <div class="stat-row" title="Total number of people in the network">
             <span class="stat-label">Nodes</span>
             <span class="stat-value font-mono" id="nodes">0</span>
           </div>
-          <div class="stat-row">
+          <div class="stat-row" title="Total number of connections between people">
             <span class="stat-label">Edges</span>
             <span class="stat-value font-mono" id="edges">0</span>
           </div>
-          <div class="stat-row">
-            <span class="stat-label">Cognitive Load</span>
-            <span class="stat-value font-mono" id="cognitive-load">0.0</span>
+          <div class="stat-row stat-row-spectrum" title="Average mental effort required to process incoming information">
+            <div class="stat-header">
+              <span class="stat-label">🧠 Cognitive Load</span>
+              <span class="stat-value font-mono" id="cognitive-load">0.0</span>
+            </div>
+            <div class="spectrum-bar">
+              <div class="spectrum-zone zone-green" style="width: 50%"></div>
+              <div class="spectrum-zone zone-yellow" style="width: 30%"></div>
+              <div class="spectrum-zone zone-red" style="width: 20%"></div>
+              <div class="spectrum-marker" id="cognitive-load-marker" style="left: 0%"></div>
+            </div>
           </div>
-          <div class="stat-row">
-            <span class="stat-label">Homeostatic</span>
-            <span class="stat-value font-mono" id="homeostasis">100%</span>
+          <div class="stat-row stat-row-spectrum" title="System's ability to maintain equilibrium and return to balance">
+            <div class="stat-header">
+              <span class="stat-label">⚖️ Homeostatic</span>
+              <span class="stat-value font-mono" id="homeostasis">100%</span>
+            </div>
+            <div class="spectrum-bar">
+              <div class="spectrum-zone zone-red" style="width: 50%"></div>
+              <div class="spectrum-zone zone-yellow" style="width: 30%"></div>
+              <div class="spectrum-zone zone-green" style="width: 20%"></div>
+              <div class="spectrum-marker" id="homeostasis-marker" style="left: 100%"></div>
+            </div>
           </div>
-          <div class="stat-row">
-            <span class="stat-label">Emotional</span>
-            <span class="stat-value font-mono" id="emotional">0.5</span>
+          <div class="stat-row stat-row-spectrum" title="Average emotional state across the network (0=negative, 0.5=neutral, 1=positive)">
+            <div class="stat-header">
+              <span class="stat-label">😶 Emotional</span>
+              <span class="stat-value font-mono" id="emotional">0.5</span>
+            </div>
+            <div class="spectrum-bar">
+              <div class="spectrum-zone zone-red" style="width: 20%"></div>
+              <div class="spectrum-zone zone-yellow" style="width: 20%"></div>
+              <div class="spectrum-zone zone-green" style="width: 20%"></div>
+              <div class="spectrum-zone zone-yellow" style="width: 20%"></div>
+              <div class="spectrum-zone zone-red" style="width: 20%"></div>
+              <div class="spectrum-marker" id="emotional-marker" style="left: 50%"></div>
+            </div>
           </div>
-          <div class="stat-row">
-            <span class="stat-label">Polarization</span>
-            <span class="stat-value font-mono" id="polarization">0.0</span>
+          <div class="stat-row stat-row-spectrum" title="Degree of division and echo chamber formation in the network">
+            <div class="stat-header">
+              <span class="stat-label">🧲 Polarization</span>
+              <span class="stat-value font-mono" id="polarization">0.0</span>
+            </div>
+            <div class="spectrum-bar">
+              <div class="spectrum-zone zone-green" style="width: 30%"></div>
+              <div class="spectrum-zone zone-yellow" style="width: 30%"></div>
+              <div class="spectrum-zone zone-red" style="width: 40%"></div>
+              <div class="spectrum-marker" id="polarization-marker" style="left: 0%"></div>
+            </div>
           </div>
-          <div class="stat-row">
-            <span class="stat-label">Double Bind</span>
-            <span class="stat-value font-mono" id="double-bind">0%</span>
+          <div class="stat-row stat-row-spectrum" title="Percentage of nodes experiencing contradictory communication demands">
+            <div class="stat-header">
+              <span class="stat-label">🪢 Double Bind</span>
+              <span class="stat-value font-mono" id="double-bind">0%</span>
+            </div>
+            <div class="spectrum-bar">
+              <div class="spectrum-zone zone-green" style="width: 30%"></div>
+              <div class="spectrum-zone zone-yellow" style="width: 30%"></div>
+              <div class="spectrum-zone zone-red" style="width: 40%"></div>
+              <div class="spectrum-marker" id="double-bind-marker" style="left: 0%"></div>
+            </div>
           </div>
-          <div class="stat-row">
+          <div class="stat-row" title="Number of highly influential nodes (top 0.1% by follower count)">
             <span class="stat-label">Influencers</span>
             <span class="stat-value font-mono" id="influencers">0</span>
           </div>
-          <div class="stat-row">
+          <div class="stat-row" title="Average number of followers per node in the network">
             <span class="stat-label">Avg Followers</span>
             <span class="stat-value font-mono" id="avg-followers">0</span>
           </div>

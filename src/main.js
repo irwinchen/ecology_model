@@ -262,7 +262,30 @@ class App {
     this.simulateBtn.disabled = true;
     this.resetBtn.disabled = true;
 
+    // Hide all spectrum markers
+    this.hideSpectrumMarkers();
+
     console.log('Reset complete');
+  }
+
+  /**
+   * Hide all spectrum markers
+   */
+  hideSpectrumMarkers() {
+    const markers = [
+      'cognitive-load-marker',
+      'homeostasis-marker',
+      'emotional-marker',
+      'polarization-marker',
+      'double-bind-marker'
+    ];
+
+    markers.forEach(id => {
+      const marker = document.getElementById(id);
+      if (marker) {
+        marker.classList.remove('visible');
+      }
+    });
   }
 
   /**
@@ -295,6 +318,59 @@ class App {
     this.influencersEl.textContent = metrics.influencer_count || 0;
     this.avgFollowersEl.textContent = metrics.avg_influencer_followers ?
       metrics.avg_influencer_followers.toLocaleString() : '0';
+
+    // Update spectrum markers
+    this.updateSpectrumMarkers(metrics);
+  }
+
+  /**
+   * Update spectrum bar marker positions based on metric values
+   */
+  updateSpectrumMarkers(metrics) {
+    // Cognitive Load: 0-1 scale (0 = no load, 1 = at capacity)
+    const cognitiveLoadMarker = document.getElementById('cognitive-load-marker');
+    if (cognitiveLoadMarker && metrics.avg_cognitive_load !== undefined) {
+      const cognitiveLoadPercent = Math.min(metrics.avg_cognitive_load * 100, 100);
+      cognitiveLoadMarker.style.left = `${cognitiveLoadPercent}%`;
+      cognitiveLoadMarker.textContent = metrics.avg_cognitive_load.toFixed(2);
+      cognitiveLoadMarker.classList.add('visible');
+    }
+
+    // Homeostatic: percentage within range (higher is better)
+    const homeostasisMarker = document.getElementById('homeostasis-marker');
+    if (homeostasisMarker && metrics.percent_within_homeostatic_range !== undefined) {
+      const homeostasisPercent = metrics.percent_within_homeostatic_range * 100;
+      homeostasisMarker.style.left = `${homeostasisPercent}%`;
+      homeostasisMarker.textContent = `${homeostasisPercent.toFixed(1)}%`;
+      homeostasisMarker.classList.add('visible');
+    }
+
+    // Emotional: 0-1 scale (0.5 = calm, extremes are bad)
+    const emotionalMarker = document.getElementById('emotional-marker');
+    if (emotionalMarker && metrics.avg_emotional_agitation !== undefined) {
+      const emotionalPercent = metrics.avg_emotional_agitation * 100;
+      emotionalMarker.style.left = `${emotionalPercent}%`;
+      emotionalMarker.textContent = metrics.avg_emotional_agitation.toFixed(2);
+      emotionalMarker.classList.add('visible');
+    }
+
+    // Polarization: 0-1 scale (lower is better)
+    const polarizationMarker = document.getElementById('polarization-marker');
+    if (polarizationMarker && metrics.tribal_polarization !== undefined) {
+      const polarizationPercent = metrics.tribal_polarization * 100;
+      polarizationMarker.style.left = `${polarizationPercent}%`;
+      polarizationMarker.textContent = metrics.tribal_polarization.toFixed(2);
+      polarizationMarker.classList.add('visible');
+    }
+
+    // Double Bind: percentage in double bind (lower is better)
+    const doubleBindMarker = document.getElementById('double-bind-marker');
+    if (doubleBindMarker && metrics.percent_in_double_bind !== undefined) {
+      const doubleBindPercent = metrics.percent_in_double_bind * 100;
+      doubleBindMarker.style.left = `${doubleBindPercent}%`;
+      doubleBindMarker.textContent = `${doubleBindPercent.toFixed(1)}%`;
+      doubleBindMarker.classList.add('visible');
+    }
   }
 
   /**
