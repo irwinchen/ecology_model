@@ -816,9 +816,28 @@ export class NetworkGenerator {
   assignEmergentRoles() {
     console.log('Assigning emergent roles based on follower count...');
 
-    // Count followers and assign roles for each node
+    // FIRST: Calculate follower counts
+    // Follower = someone who receives content from this node (outgoing edges)
+    const followerCounts = new Map();
+
     this.nodes.forEach(node => {
-      // Use Node's built-in determineRole() method
+      followerCounts.set(node.id, 0);
+    });
+
+    // Count followers (outgoing edges where this node is the source)
+    this.edges.forEach(edge => {
+      const currentCount = followerCounts.get(edge.source) || 0;
+      followerCounts.set(edge.source, currentCount + 1);
+    });
+
+    // Attach follower count to each node
+    this.nodes.forEach(node => {
+      node.follower_count = followerCounts.get(node.id) || 0;
+    });
+
+    // THEN: Determine roles based on follower count
+    this.nodes.forEach(node => {
+      // Use Node's built-in determineRole() method (now that follower_count is set)
       node.determineRole();
 
       // Calculate reach based on role and era
@@ -898,33 +917,16 @@ export class NetworkGenerator {
   /**
    * Identify influencers based on follower count
    * Roughly 1 influencer per 1,000 people (more realistic for platform dynamics)
+   *
+   * NOTE: Follower counts are already calculated in assignEmergentRoles()
    */
   identifyInfluencers() {
     console.log('Identifying influencers...');
 
-    // Calculate follower count for each node
-    // Follower = someone who receives content from this node
-    const followerCounts = new Map();
-
-    this.nodes.forEach(node => {
-      followerCounts.set(node.id, 0);
-    });
-
-    // Count followers (incoming edges where this node is the source)
-    this.edges.forEach(edge => {
-      const currentCount = followerCounts.get(edge.source) || 0;
-      followerCounts.set(edge.source, currentCount + 1);
-    });
-
-    // Attach follower count to each node
-    this.nodes.forEach(node => {
-      node.follower_count = followerCounts.get(node.id) || 0;
-    });
-
     // Determine number of influencers (1 per 1,000 people, minimum 1)
     const influencer_count = Math.max(1, Math.floor(this.nodes.length / 1000));
 
-    // Sort nodes by follower count
+    // Sort nodes by follower count (already calculated in assignEmergentRoles)
     const nodesByFollowers = [...this.nodes].sort((a, b) => b.follower_count - a.follower_count);
 
     // Mark top N as influencers

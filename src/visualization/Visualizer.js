@@ -148,6 +148,26 @@ export class Visualizer {
     // Visualization objects
     this.node_meshes = new Map(); // node.id -> THREE.Sprite or Mesh
     this.edge_lines = [];
+    this.edges_by_node = new Map(); // node.id -> [edge_line1, edge_line2, ...]
+
+    // Interaction state
+    this.highlighted_nodes = new Set();
+    this.highlighted_edges = new Set();
+    this.hovered_node_id = null;
+
+    // Mouse interaction
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
+    this.mouse_move_handler = null;
+
+    // Edge visibility state (tracked for highlighting)
+    this.edge_visibility_state = {
+      embodied: true,
+      print: true,
+      broadcast: true,
+      internet: true,
+      algorithmic: true
+    };
 
     // Animation
     this.animating = false;
@@ -197,6 +217,10 @@ export class Visualizer {
 
     // Handle window resize
     window.addEventListener('resize', () => this.onWindowResize());
+
+    // Handle mouse movement for node hover detection
+    this.mouse_move_handler = (event) => this.onMouseMove(event);
+    this.renderer.domElement.addEventListener('mousemove', this.mouse_move_handler);
 
     // Handle WebGL context loss/restore
     this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
@@ -254,26 +278,28 @@ export class Visualizer {
   }
 
   /**
-   * Get node color based on influencer status, role, and theme
-   * Priority: influencer > role
+   * Get node color based on visible stress level
+   *
+   * VISUALIZATION PRINCIPLE: COLOR = ACUTE STRESS STATE
+   *
+   * Green (healthy) → Yellow (stressed) → Red (distressed)
+   * Uses HSL color space for smooth gradient
+   *
+   * @param {Node} node - The node to get color for
+   * @returns {THREE.Color} - Color object
    */
   getNodeColor(node) {
-    const colors = COLORS[this.theme];
+    const stress = node.getVisibleStress(); // 0-1 range
 
-    // Influencers get purple color regardless of role
-    if (node.is_influencer) {
-      return colors.influencer;
-    }
+    // HSL gradient: Hue from 120° (green) to 0° (red)
+    // Green (calm) → Yellow (moderate stress) → Red (severe distress)
+    const hue = (1 - stress) * 120; // 120° = green, 60° = yellow, 0° = red
 
-    // Otherwise use role-based coloring
-    switch (node.role) {
-      case 'broadcaster':
-        return colors.broadcaster;
-      case 'creator':
-        return colors.creator;
-      default:
-        return colors.consumer;
-    }
+    // Adjust saturation and lightness based on theme
+    const saturation = 0.8; // Vibrant colors
+    const lightness = this.theme === 'dark' ? 0.6 : 0.5;
+
+    return new THREE.Color().setHSL(hue / 360, saturation, lightness);
   }
 
   /**
@@ -316,57 +342,98 @@ export class Visualizer {
 
   /**
    * Create flat 2D circle nodes using sprites
-   * Node size based on role hierarchy + follower scaling
+   *
+   * VISUALIZATION PRINCIPLES:
+   * - Size = Follower count (logarithmic scale - influence/reach)
+   * - Color = Visible stress (green → yellow → red gradient)
+   * - Border = System integrity (solid → dashed → none)
    */
   createNodes() {
     this.network_data.nodes.forEach((node) => {
       const color = this.getNodeColor(node);
+      const integrity = node.getSystemIntegrity();
 
-      // Role-based base sizes (clear visual hierarchy)
-      let base_size;
-      if (node.is_influencer) {
-        base_size = 5.0;  // Largest - influencers
-      } else if (node.role === 'broadcaster') {
-        base_size = 3.5;  // Large - broadcasters
-      } else if (node.role === 'creator') {
-        base_size = 2.5;  // Medium - creators
-      } else {
-        base_size = 1.5;  // Small - consumers
-      }
+      // Size based on follower count (logarithmic scale with power curve)
+      // Creates dramatic size differences: consumers tiny, influencers huge
+      const follower_count = node.follower_count || 1;
+      const log_followers = Math.log10(follower_count + 1);
 
-      // Add follower count scaling on top (subtle boost)
-      const follower_boost = Math.log10((node.follower_count || 0) + 1) * 0.3;
-      const node_size = base_size + follower_boost;
+      // Map to visual size range with power curve for exaggeration
+      const min_size = 1.5;  // Tiny consumers
+      const max_size = 25;   // Massive influencers (2x larger than before)
 
-      // Create circle texture
+      // Use power curve (^1.5) to exaggerate differences
+      const normalized = log_followers / 6; // 0-1 range
+      const curved = Math.pow(normalized, 1.5); // Exaggerate larger values
+      const node_size = min_size + curved * (max_size - min_size);
+
+      // Create circle texture with border encoding system integrity
       const canvas = document.createElement('canvas');
       canvas.width = 64;
       canvas.height = 64;
       const ctx = canvas.getContext('2d');
 
-      // Draw filled circle
-      ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+      // Draw filled circle (stress color)
+      const colorHex = color.getHexString();
+      ctx.fillStyle = `#${colorHex}`;
       ctx.beginPath();
-      ctx.arc(32, 32, 30, 0, Math.PI * 2);
+      ctx.arc(32, 32, 28, 0, Math.PI * 2);
       ctx.fill();
 
-      // Optional: add subtle border
-      ctx.strokeStyle = `rgba(0,0,0,0.1)`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      // Draw border based on system integrity
+      // 1.0-0.7: Solid border (healthy, can self-regulate)
+      // 0.7-0.4: Dashed border (degrading, struggling)
+      // 0.4-0.0: Thin/no border (collapsed, dysfunctional)
+
+      if (integrity > 0.7) {
+        // Healthy: solid border
+        ctx.strokeStyle = this.theme === 'dark' ?
+          `rgba(255,255,255,0.6)` : `rgba(0,0,0,0.4)`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
+        ctx.stroke();
+
+      } else if (integrity > 0.4) {
+        // Degrading: dashed border
+        ctx.strokeStyle = this.theme === 'dark' ?
+          `rgba(255,255,255,0.5)` : `rgba(0,0,0,0.3)`;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]); // Dashed pattern
+        ctx.beginPath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset dash
+
+      } else if (integrity > 0.2) {
+        // Collapsing: thin border
+        ctx.strokeStyle = this.theme === 'dark' ?
+          `rgba(255,255,255,0.3)` : `rgba(0,0,0,0.2)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      // Below 0.2: no border (system has collapsed)
 
       // Create sprite material
       const texture = new THREE.CanvasTexture(canvas);
       const material = new THREE.SpriteMaterial({
         map: texture,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.85
       });
 
       const sprite = new THREE.Sprite(material);
       sprite.scale.set(node_size, node_size, 1);
       sprite.position.set(node.position.x, node.position.y, node.position.z);
-      sprite.userData = { node: node, base_scale: node_size };
+      // Store canvas in userData so we can reuse it during updates
+      sprite.userData = {
+        node: node,
+        base_scale: node_size,
+        canvas: canvas,
+        ctx: ctx
+      };
 
       this.scene.add(sprite);
       this.node_meshes.set(node.id, sprite);
@@ -574,6 +641,20 @@ export class Visualizer {
     const line = new THREE.Line(geometry, material);
     line.userData = { edge: edge };
 
+    // Populate edge lookup map for fast access during hover interactions
+    const source_id = edge.source;
+    const target_id = edge.target;
+
+    if (!this.edges_by_node.has(source_id)) {
+      this.edges_by_node.set(source_id, []);
+    }
+    if (!this.edges_by_node.has(target_id)) {
+      this.edges_by_node.set(target_id, []);
+    }
+
+    this.edges_by_node.get(source_id).push(line);
+    this.edges_by_node.get(target_id).push(line);
+
     this.scene.add(line);
     this.edge_lines.push(line);
   }
@@ -624,26 +705,91 @@ export class Visualizer {
 
   /**
    * Update node visual states
+   *
+   * Updates node appearance based on changing psychological state:
+   * - Color: Updates stress gradient (green → yellow → red)
+   * - Border: Updates system integrity visualization
+   * - Pulsing: Shows double bind entrapment
+   * - Respects highlighting state (doesn't override interaction highlights)
    */
   updateNodeAppearances() {
+    // Check if we're currently highlighting nodes
+    const is_highlighting = this.highlighted_nodes.size > 0 || this.highlighted_edges.size > 0;
+
     this.node_meshes.forEach((sprite, node_id) => {
       const node = sprite.userData.node;
       const base_scale = sprite.userData.base_scale;
+      const canvas = sprite.userData.canvas;
+      const ctx = sprite.userData.ctx;
 
-      // Update scale based on cognitive load
-      const overload_ratio = node.cognitive_load / node.cognitive_capacity;
-      const scale = base_scale * (1 + Math.min(overload_ratio * 0.5, 1.0));
-      sprite.scale.set(scale, scale, 1);
+      // Get current metrics
+      const stress = node.getVisibleStress();
+      const integrity = node.getSystemIntegrity();
 
-      // Pulsate if in double bind stress
-      if (node.double_bind.in_double_bind && node.double_bind.S > 0.5) {
-        const pulse = Math.sin(Date.now() * 0.005) * 0.2 + 1.0;
-        sprite.scale.multiplyScalar(pulse);
+      // Clear and redraw the existing canvas (reuse, don't recreate!)
+      ctx.clearRect(0, 0, 64, 64);
+
+      // Get updated stress color
+      const hue = (1 - stress) * 120; // Green → Yellow → Red
+      const saturation = 0.8;
+      const lightness = this.theme === 'dark' ? 0.6 : 0.5;
+      const color = new THREE.Color().setHSL(hue / 360, saturation, lightness);
+      const colorHex = color.getHexString();
+
+      // Draw filled circle with stress color
+      ctx.fillStyle = `#${colorHex}`;
+      ctx.beginPath();
+      ctx.arc(32, 32, 28, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw border based on system integrity
+      if (integrity > 0.7) {
+        ctx.strokeStyle = this.theme === 'dark' ?
+          `rgba(255,255,255,0.6)` : `rgba(0,0,0,0.4)`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (integrity > 0.4) {
+        ctx.strokeStyle = this.theme === 'dark' ?
+          `rgba(255,255,255,0.5)` : `rgba(0,0,0,0.3)`;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (integrity > 0.2) {
+        ctx.strokeStyle = this.theme === 'dark' ?
+          `rgba(255,255,255,0.3)` : `rgba(0,0,0,0.2)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
+        ctx.stroke();
       }
 
-      // Update opacity based on emotional state (subtle)
-      const opacity = 0.8 + node.emotional_state * 0.2;
-      sprite.material.opacity = opacity;
+      // Tell Three.js to update the texture (no texture recreation!)
+      sprite.material.map.needsUpdate = true;
+
+      // Keep base size (follower count doesn't change during simulation)
+      let scale = base_scale;
+
+      // Pulsate if in double bind stress (intensity based on stress level)
+      if (node.double_bind.in_double_bind && node.double_bind.S > 0.5) {
+        const pulse_intensity = node.double_bind.S * 0.3; // 0.3 max intensity
+        const pulse = Math.sin(Date.now() * 0.005) * pulse_intensity + 1.0;
+        scale *= pulse;
+      }
+
+      sprite.scale.set(scale, scale, 1);
+
+      // Update opacity - but ONLY if we're not currently highlighting
+      // (highlighting controls opacity during interaction)
+      if (!is_highlighting) {
+        const opacity = 0.85 + stress * 0.15;
+        sprite.material.opacity = opacity;
+      }
+      // If highlighting, the highlighting methods control opacity, so don't override
     });
   }
 
@@ -687,6 +833,49 @@ export class Visualizer {
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(width, height);
+  }
+
+  /**
+   * Handle mouse movement for node hover detection
+   *
+   * Uses Three.js raycasting to detect which node (if any) is under the cursor.
+   * When a node is hovered, it highlights the node and its connections.
+   * Individual node hover overrides any type-level highlighting from legend.
+   */
+  onMouseMove(event) {
+    // Calculate mouse position in normalized device coordinates (-1 to +1)
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // Update the raycaster with camera and mouse position
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    // Get all node sprites for raycasting
+    const node_sprites = Array.from(this.node_meshes.values());
+
+    // Find intersected nodes
+    const intersects = this.raycaster.intersectObjects(node_sprites);
+
+    if (intersects.length > 0) {
+      // Found a hovered node
+      const hovered_sprite = intersects[0].object;
+      const hovered_node = hovered_sprite.userData.node;
+
+      // Only update if we're hovering over a different node
+      if (this.hovered_node_id !== hovered_node.id) {
+        this.hovered_node_id = hovered_node.id;
+        // Highlight this specific node and its connections
+        this.highlightNode(hovered_node.id, this.edge_visibility_state);
+      }
+    } else {
+      // No node hovered
+      if (this.hovered_node_id !== null) {
+        this.hovered_node_id = null;
+        // Clear highlighting
+        this.clearHighlights();
+      }
+    }
   }
 
   /**
@@ -745,6 +934,11 @@ export class Visualizer {
    */
   dispose() {
     this.stop();
+
+    // Remove event listeners
+    if (this.mouse_move_handler) {
+      this.renderer.domElement.removeEventListener('mousemove', this.mouse_move_handler);
+    }
 
     // Dispose geometries and materials
     this.node_meshes.forEach((sprite) => {
@@ -812,10 +1006,158 @@ export class Visualizer {
    * @param {Object} visibilityState - { embodied: bool, print: bool, broadcast: bool, internet: bool, algorithmic: bool }
    */
   setEdgeVisibility(visibilityState) {
+    // Store visibility state for use in highlighting
+    this.edge_visibility_state = { ...visibilityState };
+
     this.edge_lines.forEach((line) => {
       const edge = line.userData.edge;
       const isVisible = visibilityState[edge.medium];
       line.visible = isVisible;
+    });
+  }
+
+  /**
+   * Highlight nodes by role (for legend hover)
+   *
+   * INTERACTION PRINCIPLE: TYPE-LEVEL HIGHLIGHTING
+   * - Dim non-matching nodes to 0.25 opacity
+   * - Keep matching nodes at normal opacity
+   * - Do NOT show edges (only node highlighting)
+   * - Used when hovering over legend items
+   *
+   * @param {string} role - 'consumer', 'creator', 'broadcaster', or 'influencer'
+   */
+  highlightNodesByRole(role) {
+    this.highlighted_nodes.clear();
+
+    this.node_meshes.forEach((sprite, node_id) => {
+      const node = sprite.userData.node;
+
+      // Check if node matches the role
+      // Influencers are identified by is_influencer flag (top 0.1% by followers)
+      const matches = role === 'influencer'
+        ? node.is_influencer
+        : node.role === role;
+
+      if (matches) {
+        this.highlighted_nodes.add(node_id);
+        // Keep normal opacity (based on stress state)
+        const stress = node.getVisibleStress();
+        sprite.material.opacity = 0.85 + stress * 0.15;
+      } else {
+        // Dim non-matching nodes
+        sprite.material.opacity = 0.25;
+      }
+    });
+
+    // No edge highlighting for type-level hover
+  }
+
+  /**
+   * Highlight a specific node and its first-order connections
+   *
+   * INTERACTION PRINCIPLE: INDIVIDUAL NODE HIGHLIGHTING
+   * - Highlight the selected node (full opacity)
+   * - Show all first-order connected edges (respect visibility toggles)
+   * - Dim non-connected nodes to 0.25 opacity
+   * - Show edges in BOTH directions (bidirectional)
+   * - Used when hovering over a node in the graph
+   *
+   * @param {number} node_id - The node to highlight
+   * @param {Object} visibilityState - Current edge type visibility settings
+   */
+  highlightNode(node_id, visibilityState) {
+    this.highlighted_nodes.clear();
+    this.highlighted_edges.clear();
+
+    const target_sprite = this.node_meshes.get(node_id);
+    if (!target_sprite) return;
+
+    // Highlight the selected node
+    this.highlighted_nodes.add(node_id);
+    const node = target_sprite.userData.node;
+    const stress = node.getVisibleStress();
+    target_sprite.material.opacity = 0.85 + stress * 0.15;
+
+    // Get all edges connected to this node
+    const connected_edges = this.edges_by_node.get(node_id) || [];
+
+    // Highlight connected edges (respect visibility toggles)
+    connected_edges.forEach(line => {
+      const edge = line.userData.edge;
+
+      // Only highlight if this edge type is currently visible
+      if (visibilityState[edge.medium]) {
+        this.highlighted_edges.add(line);
+
+        // Increase edge opacity for highlighting
+        const baseOpacity = {
+          'embodied': 0.3,
+          'print': 0.25,
+          'broadcast': 0.2,
+          'internet': 0.15,
+          'algorithmic': 0.12
+        }[edge.medium] || 0.25;
+
+        // Boost highlighted edge opacity
+        line.material.opacity = Math.min(baseOpacity * Math.pow(edge.strength, 0.7) * 3, 0.9);
+      }
+    });
+
+    // Dim all other nodes
+    this.node_meshes.forEach((sprite, id) => {
+      if (id !== node_id) {
+        sprite.material.opacity = 0.25;
+      }
+    });
+
+    // Dim all other edges
+    this.edge_lines.forEach(line => {
+      if (!this.highlighted_edges.has(line)) {
+        const edge = line.userData.edge;
+        const baseOpacity = {
+          'embodied': 0.3,
+          'print': 0.25,
+          'broadcast': 0.2,
+          'internet': 0.15,
+          'algorithmic': 0.12
+        }[edge.medium] || 0.25;
+
+        line.material.opacity = baseOpacity * Math.pow(edge.strength, 0.7) * 0.25;
+      }
+    });
+  }
+
+  /**
+   * Clear all highlighting and restore normal appearance
+   *
+   * Resets node opacities to stress-based values and edge opacities
+   * to their normal strength-based values.
+   */
+  clearHighlights() {
+    this.highlighted_nodes.clear();
+    this.highlighted_edges.clear();
+
+    // Restore node opacities based on stress state
+    this.node_meshes.forEach((sprite, node_id) => {
+      const node = sprite.userData.node;
+      const stress = node.getVisibleStress();
+      sprite.material.opacity = 0.85 + stress * 0.15;
+    });
+
+    // Restore edge opacities based on strength
+    this.edge_lines.forEach(line => {
+      const edge = line.userData.edge;
+
+      const baseOpacity = {
+        'embodied': 0.3,
+        'print': 0.25,
+        'broadcast': 0.2,
+        'internet': 0.15,
+        'algorithmic': 0.12
+      }[edge.medium] || 0.25;
+
+      line.material.opacity = baseOpacity * Math.pow(edge.strength, 0.7);
     });
   }
 }

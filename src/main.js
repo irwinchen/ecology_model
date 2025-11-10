@@ -38,6 +38,11 @@ class App {
     this.toggleInternet = document.getElementById('toggle-internet');
     this.toggleAlgorithmic = document.getElementById('toggle-algorithmic');
 
+    // Legend items (for hover interactions) - specifically the Node Size section
+    const legendPanel = document.querySelector('.legend-panel');
+    const nodeSizeSection = legendPanel ? legendPanel.querySelector('.legend-section') : null;
+    this.legendItems = nodeSizeSection ? nodeSizeSection.querySelectorAll('.legend-item') : [];
+
     // Stats elements
     this.fpsEl = document.getElementById('fps');
     this.nodesEl = document.getElementById('nodes');
@@ -71,6 +76,45 @@ class App {
     this.toggleBroadcast.addEventListener('change', () => this.updateEdgeVisibility());
     this.toggleInternet.addEventListener('change', () => this.updateEdgeVisibility());
     this.toggleAlgorithmic.addEventListener('change', () => this.updateEdgeVisibility());
+
+    // Legend hover interactions
+    this.setupLegendHoverHandlers();
+  }
+
+  /**
+   * Setup legend hover handlers for node type highlighting
+   *
+   * NOTE: Ranges are based on ROLE, not fixed follower thresholds
+   * - Consumer: role === 'consumer'
+   * - Creator: role === 'creator'
+   * - Broadcaster: role === 'broadcaster'
+   * - Influencer: is_influencer === true (top 0.1% by followers)
+   */
+  setupLegendHoverHandlers() {
+    const roleFilters = [
+      'consumer',     // Consumer (10s)
+      'creator',      // Creator (100s)
+      'broadcaster',  // Broadcaster (1000s)
+      'influencer'    // Influencer (top 0.1%)
+    ];
+
+    this.legendItems.forEach((item, index) => {
+      const role = roleFilters[index];
+
+      // Highlight matching nodes on hover
+      item.addEventListener('mouseenter', () => {
+        if (this.visualizer) {
+          this.visualizer.highlightNodesByRole(role);
+        }
+      });
+
+      // Clear highlighting on leave
+      item.addEventListener('mouseleave', () => {
+        if (this.visualizer) {
+          this.visualizer.clearHighlights();
+        }
+      });
+    });
   }
 
   /**

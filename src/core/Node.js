@@ -451,6 +451,81 @@ export class Node {
   }
 
   /**
+   * Get visible stress level (for node color visualization)
+   *
+   * THEORETICAL FOUNDATION: ACUTE PSYCHOLOGICAL STATE
+   *
+   * This measures what you'd SEE if you looked at someone - the immediate
+   * manifestations of distress:
+   *
+   * 1. Emotional distress (50%): How far from calm/equilibrium?
+   *    - Maps to visible agitation, anxiety, emotional dysregulation
+   *    - What you'd notice in facial expression, body language
+   *
+   * 2. Cognitive overload (30%): Are they overwhelmed?
+   *    - Maps to confusion, inability to focus, decision paralysis
+   *    - What you'd notice in scattered attention, forgetfulness
+   *
+   * 3. Double bind agitation (20%): Are they visibly trapped?
+   *    - Maps to frustration, helplessness, compulsive behavior
+   *    - What you'd notice in doomscrolling, checking phone constantly
+   *
+   * Returns: 0-1 (0 = calm/green, 0.5 = stressed/yellow, 1 = distressed/red)
+   */
+  getVisibleStress() {
+    // Emotional distress: distance from calm equilibrium (0.5 setpoint)
+    // Range: 0 (perfectly calm) to 1 (maximum agitation)
+    const emotional_distress = Math.abs(this.emotional_state - 0.5) * 2;
+
+    // Cognitive overload: processing beyond capacity
+    // Range: 0 (no load) to 1+ (overloaded)
+    const cognitive_overload = Math.min(this.cognitive_load / this.cognitive_capacity, 1.0);
+
+    // Double bind agitation: visible stress from being trapped
+    // Only contributes if actually in double bind
+    const double_bind_agitation = this.double_bind.in_double_bind ?
+      this.double_bind.S * 0.5 : 0;
+
+    // Weighted composite
+    const visible_stress = (
+      emotional_distress * 0.5 +
+      cognitive_overload * 0.3 +
+      double_bind_agitation * 0.2
+    );
+
+    return Math.min(visible_stress, 1.0);
+  }
+
+  /**
+   * Get system integrity level (for node border visualization)
+   *
+   * THEORETICAL FOUNDATION: CHRONIC SYSTEMIC DAMAGE
+   *
+   * This measures LONG-TERM damage to the regulatory system - not what you
+   * see in a moment, but what accumulates over time:
+   *
+   * 1. Regulatory capacity (60%): Can you still self-correct?
+   *    - Bateson/Ashby: homeostatic regulation ability
+   *    - When this fails, system enters pathological states
+   *
+   * 2. System coherence (40%): Is the system still intact?
+   *    - Ashby's "ultrastability": system integrity
+   *    - Below 0.3 = dysfunctional, system has collapsed
+   *
+   * Returns: 0-1 (1 = healthy/solid border, 0 = collapsed/no border)
+   */
+  getSystemIntegrity() {
+    // Combine regulatory capacity and system coherence
+    // Both are already 0-1 range, higher = healthier
+    const integrity = (
+      this.regulatory_capacity * 0.6 +
+      this.system_coherence * 0.4
+    );
+
+    return Math.max(0, Math.min(integrity, 1.0));
+  }
+
+  /**
    * Get digital aura (combination of real + performed)
    *
    * THEORETICAL FOUNDATION: The 75% Rule
